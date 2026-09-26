@@ -35,16 +35,18 @@ export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'ro
   }[state.screen]
 
   return (
-    <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-16">
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,32rem)_1fr] lg:items-center lg:gap-16">
       <Stepper current={state.screen} onGo={(id) => dispatch({ type: 'go', screen: id })} />
-      <PhoneFrame conditions={conditions}>
-        <div
-          key={state.screen}
-          className={`flex min-h-0 flex-1 flex-col ${reduced ? '' : 'animate-[screen-in_200ms_var(--ease-out-strong)]'}`}
-        >
-          {screen}
-        </div>
-      </PhoneFrame>
+      <div className="lg:justify-self-center">
+        <PhoneFrame conditions={conditions}>
+          <div
+            key={state.screen}
+            className={`flex min-h-0 flex-1 flex-col ${reduced ? '' : 'animate-[screen-in_200ms_var(--ease-out-strong)]'}`}
+          >
+            {screen}
+          </div>
+        </PhoneFrame>
+      </div>
     </div>
   )
 }
