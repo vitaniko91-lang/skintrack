@@ -1,4 +1,4 @@
-import { routeStats, ROUTE_UV, WAYPOINTS } from './route'
+import { distanceToPolyline, routeStats, ROUTE_UV, WAYPOINTS } from './route'
 import type { Heightfield } from './decode'
 
 function ramp(): Heightfield {
@@ -47,5 +47,20 @@ describe('route data', () => {
   })
   it('waypoints reference existing route indices', () => {
     WAYPOINTS.forEach((w) => expect(w.index).toBeLessThan(ROUTE_UV.length))
+  })
+})
+
+describe('distanceToPolyline', () => {
+  const pts = [[0, 0], [1, 0], [1, 1]] as const
+  it('is 0 on a vertex and on a segment', () => {
+    expect(distanceToPolyline(1, 0, pts)).toBe(0)
+    expect(distanceToPolyline(0.5, 0, pts)).toBe(0)
+  })
+  it('measures perpendicular distance to the nearest segment', () => {
+    expect(distanceToPolyline(0.5, 0.2, pts)).toBeCloseTo(0.2, 6)
+    expect(distanceToPolyline(1.3, 0.5, pts)).toBeCloseTo(0.3, 6)
+  })
+  it('clamps to segment ends', () => {
+    expect(distanceToPolyline(-0.3, -0.4, pts)).toBeCloseTo(0.5, 6)
   })
 })

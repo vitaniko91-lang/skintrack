@@ -22,6 +22,13 @@ describe('buildTerrainGeometry', () => {
     expect(g.attributes.aHeight.getX(0)).toBe(0)
     expect(g.attributes.aSlope.getX(1)).toBeGreaterThan(0)
   })
+  it('stores distance to the route per vertex (UV units)', () => {
+    const r = buildTerrainGeometry(hf, 2, [[0, 0], [1, 1]])
+    expect(r.attributes.aRouteDist).toBeDefined()
+    expect(r.attributes.aRouteDist.getX(0)).toBe(0) // (0,0) лежит на маршруте
+    expect(r.attributes.aRouteDist.getX(4)).toBe(0) // центр — тоже
+    expect(r.attributes.aRouteDist.getX(2)).toBeCloseTo(Math.SQRT1_2, 5) // (1,0)
+  })
   it('spans WORLD_SIZE on x', () => {
     g.computeBoundingBox()
     expect(g.boundingBox!.max.x - g.boundingBox!.min.x).toBeCloseTo(WORLD_SIZE, 5)

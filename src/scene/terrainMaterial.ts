@@ -10,11 +10,13 @@ export interface TerrainUniforms {
 const vertex = /* glsl */ `
   attribute float aHeight;
   attribute float aSlope;
+  attribute float aRouteDist;
   uniform float uRise;
   varying float vH;
   varying float vSlope;
   varying float vX;
   varying vec2 vUv;
+  varying float vRouteDist;
   varying vec3 vNormal;
   void main() {
     vec3 p = position;
@@ -23,6 +25,7 @@ const vertex = /* glsl */ `
     vSlope = aSlope;
     vX = uv.x;
     vUv = uv;
+    vRouteDist = aRouteDist;
     vNormal = normalize(mat3(modelMatrix) * normal); // мировое пространство: свет СЗ не ездит за камерой
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
   }
@@ -42,23 +45,31 @@ const fragment = /* glsl */ `
   varying float vSlope;
   varying float vX;
   varying vec2 vUv;
+  varying float vRouteDist;
   varying vec3 vNormal;
 
   const float INTERVAL = 1.0 / 32.0; // ≈ 70 м по вертикали на этой горе
+  // Коридор маршрута: ±500 м (≈ 500 / 6786 в UV), мягкий край ≈ 200 м.
+  const float CORRIDOR = 0.074;
+  const float CORRIDOR_SOFT = 0.03;
+  const float TINT = 0.18;   // вся гора — тихая тонировка
+  const float FOCUS = 0.55;  // в коридоре — крутизна вдоль твоего пути
 
   void main() {
     // Свет: одна сторона, мягко — рельеф читается, но сцену держат изолинии.
     float light = clamp(dot(normalize(vNormal), normalize(vec3(-0.4, 0.8, 0.3))), 0.0, 1.0);
     vec3 color = uGround * (0.55 + 0.9 * light);
 
-    // Слой крутизны — тонировка под изолиниями: волна с запада на восток,
+    // Слой крутизны под изолиниями: тихо по всей горе, в полную силу в коридоре маршрута;
+    // волна с запада на восток,
     // края полос размыты на ~1°, чтобы не было крапа.
     float bandMask = smoothstep(29.5, 30.5, vSlope);
     vec3 band = mix(uBand1, uBand2, smoothstep(34.5, 35.5, vSlope));
     band = mix(band, uBand3, smoothstep(39.5, 40.5, vSlope));
     band = mix(band, uBand4, smoothstep(44.5, 45.5, vSlope));
     float sweep = 1.0 - smoothstep(uSlope * 1.2 - 0.12, uSlope * 1.2, vX);
-    color = mix(color, band, bandMask * sweep * 0.38);
+    float corridor = 1.0 - smoothstep(CORRIDOR, CORRIDOR + CORRIDOR_SOFT, vRouteDist);
+    color = mix(color, band, bandMask * sweep * mix(TINT, FOCUS, corridor));
 
     // Изолинии поверх крутизны: толщина в пикселях через fwidth, появляются снизу вверх.
     float f = vH / INTERVAL;

@@ -22,6 +22,19 @@ export const WAYPOINTS = [
   { index: 7, name: 'Shoulder', kind: 'summit' },
 ] as const
 
+/** Кратчайшее расстояние от точки (u, v) до ломаной pts, в единицах UV. */
+export function distanceToPolyline(u: number, v: number, pts: readonly (readonly [number, number])[]): number {
+  let best = Infinity
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay] = pts[i - 1], [bx, by] = pts[i]
+    const dx = bx - ax, dy = by - ay
+    const len2 = dx * dx + dy * dy
+    const t = len2 > 0 ? Math.min(Math.max(((u - ax) * dx + (v - ay) * dy) / len2, 0), 1) : 0
+    best = Math.min(best, Math.hypot(u - (ax + dx * t), v - (ay + dy * t)))
+  }
+  return best
+}
+
 export interface RouteStats {
   lengthM: number
   gainM: number
