@@ -20,10 +20,20 @@ describe('routeStats', () => {
     const s = routeStats(ramp(), [[0, 0.5], [1, 0.5]])
     expect(s.maxSlopeDeg).toBeCloseTo(45, 3)
   })
-  it('estimates time with Munter: 4 km/h flat + 300 m/h up', () => {
+  it('estimates time with the Munter method: (km + gain/100) / 4', () => {
     const s = routeStats(ramp(), [[0, 0.5], [1, 0.5]])
-    // 0.2 км / 4 + 200 м / 300 → 0.05 + 0.667 ч
-    expect(s.minutes).toBe(Math.round((0.05 + 200 / 300) * 60))
+    // 0.2 км + 200 м набора (= 2 км-эквивалента) → 2.2 / 4 ч → 33 мин
+    expect(s.minutes).toBe(Math.round(((0.2 + 200 / 100) / 4) * 60))
+  })
+  it('takes max slope from the terrain grid, not the chord between sample points', () => {
+    // 5×3: плоские ряды с всплеском в средней колонке. Концы трека на одной
+    // высоте (хорда ≈ 0°), но сетка рядом со всплеском крутая — доказывает,
+    // что максимум обязан приходить из сэмплирования slopeGrid вдоль сегмента.
+    const row = [0, 0, 500, 0, 0]
+    const heights = new Float32Array([...row, ...row, ...row])
+    const hf: Heightfield = { width: 5, height: 3, heights, minH: 0, maxH: 500, cellMeters: 100 }
+    const s = routeStats(hf, [[0, 0.5], [1, 0.5]])
+    expect(s.maxSlopeDeg).toBeGreaterThan(60) // склон сетки у всплеска, ~68.2°
   })
 })
 
