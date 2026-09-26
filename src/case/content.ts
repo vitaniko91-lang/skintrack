@@ -20,8 +20,8 @@ export const SOURCES: Source[] = [
     url: 'https://www.slf.ch/en/avalanche-bulletin-and-snow-situation/about-the-avalanche-bulletin/danger-levels/',
     accessed: '2026-09-26',
     quotes: [
-      'Level 2 (moderate): “Around 30 % of avalanche fatalities.” “Forecast for around 50 % of the winter season.”',
-      'Level 3 (considerable): “Around 50 % of avalanche fatalities.” “Forecast for around 30 % of the winter season.”',
+      'Level 2 (moderate): “Around 30 % of avalanche fatalities.” “Forecast for around 50 % of the winter season.”',
+      'Level 3 (considerable): “Around 50 % of avalanche fatalities.” “Forecast for around 30 % of the winter season.”',
     ],
   },
   {

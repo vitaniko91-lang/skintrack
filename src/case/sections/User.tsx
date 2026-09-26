@@ -28,7 +28,7 @@ export function User() {
         */}
         <ol aria-label="Journey" className="grid gap-px overflow-hidden rounded-[var(--radius-card)] bg-line ring-1 ring-line sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
           {JOURNEY.map((j, i) => (
-            <li key={j.stage} className="flex flex-col gap-3 bg-ground p-5">
+            <li key={j.stage} className="flex flex-col gap-3 bg-ground p-5 sm:last:col-span-2 2xl:last:col-span-1">
               <span className="font-mono text-xs tabular-nums text-accent">0{i + 1}</span>
               <h3 className="text-lg font-semibold">{j.stage}</h3>
               <p className="text-sm">{j.doing}</p>
