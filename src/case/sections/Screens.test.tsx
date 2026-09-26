@@ -1,0 +1,35 @@
+import { render, screen } from '@testing-library/react'
+import { Screens, FLOW, EDGE_STATES } from './Screens'
+
+vi.mock('../../terrain/routeSummary', async (orig) => ({
+  ...(await orig<typeof import('../../terrain/routeSummary')>()),
+  useRouteStats: () => ({ lengthM: 3183, gainM: 999, maxSlopeDeg: 38, minutes: 198 }),
+}))
+
+beforeEach(() => {
+  window.matchMedia = ((q: string) => ({ matches: q.includes('reduce') })) as never
+})
+
+describe('Screens', () => {
+  it('shows the four flow screens and three edge states as labelled figures', () => {
+    render(<Screens />)
+    ;[...FLOW, ...EDGE_STATES].forEach((s) => {
+      expect(screen.getByRole('figure', { name: s.label })).toBeInTheDocument()
+    })
+  })
+  it('edge states surface the problem in the UI, in words', () => {
+    render(<Screens />)
+    const notices = screen.getAllByRole('status').map((n) => n.textContent)
+    expect(notices.some((t) => /no signal/i.test(t ?? ''))).toBe(true)
+    expect(notices.some((t) => /battery 12%/i.test(t ?? ''))).toBe(true)
+    const alerts = screen.getAllByRole('alert').map((a) => a.textContent ?? '')
+    expect(alerts.some((t) => /lena/i.test(t))).toBe(true)
+  })
+  it('does not vibrate on page load', () => {
+    const vibrate = vi.fn()
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
+    window.matchMedia = (() => ({ matches: false })) as never
+    render(<Screens />)
+    expect(vibrate).not.toHaveBeenCalled()
+  })
+})
