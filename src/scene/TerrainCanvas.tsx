@@ -24,7 +24,7 @@ export default function TerrainCanvas({ progress, reduced, onReady }: Props) {
   if (!hf) return null
   return (
     <Canvas
-      dpr={[1, 2]}
+      dpr={[1, 1.5]}
       camera={{ fov: 32, near: 0.1, far: 100 }}
       frameloop={reduced ? 'demand' : 'always'}
       gl={{ antialias: true, preserveDrawingBuffer: true }}
