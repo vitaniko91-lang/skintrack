@@ -21,7 +21,7 @@ const vertex = /* glsl */ `
     vH = aHeight;
     vSlope = aSlope;
     vX = uv.x;
-    vNormal = normalize(normalMatrix * normal);
+    vNormal = normalize(mat3(modelMatrix) * normal); // мировое пространство: свет СЗ не ездит за камерой
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
   }
 `
@@ -49,7 +49,7 @@ const fragment = /* glsl */ `
 
     // Изолинии: толщина в пикселях через fwidth, появляются снизу вверх.
     float f = vH / INTERVAL;
-    float d = abs(fract(f - 0.5) - 0.5) / fwidth(f);
+    float d = abs(fract(f - 0.5) - 0.5) / max(fwidth(f), 1e-4);
     float line = 1.0 - smoothstep(0.0, 1.2, d);
     float major = 1.0 - step(0.5, mod(floor(f + 0.5), 5.0)); // каждая 5-я линия — основная
     float reveal = smoothstep(uContours * 1.08 - 0.08, uContours * 1.08 - 0.02, vH);

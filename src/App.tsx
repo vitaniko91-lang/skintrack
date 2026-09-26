@@ -1,9 +1,11 @@
+import { useRef } from 'react'
+import TerrainCanvas from './scene/TerrainCanvas'
+
 export default function App() {
+  const progress = useRef(1)
   return (
-    <main className="min-h-dvh grid place-items-center">
-      <h1 className="text-6xl font-extrabold tracking-[-0.03em]" style={{ fontStretch: '125%' }}>
-        skintrack
-      </h1>
-    </main>
+    <div className="h-dvh">
+      <TerrainCanvas progress={progress} reduced={false} />
+    </div>
   )
 }
