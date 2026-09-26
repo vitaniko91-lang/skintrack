@@ -1,6 +1,6 @@
 import { useEffect, useState, type RefObject } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { loadHeightfield } from '../terrain/loadHeightfield'
+import { loadHeightfieldOnce } from '../terrain/routeSummary'
 import type { Heightfield } from '../terrain/decode'
 import { Terrain } from './Terrain'
 import { RouteLine } from './RouteLine'
@@ -20,7 +20,7 @@ export default function TerrainCanvas({ progress, reduced, onReady, onError }: P
 
   useEffect(() => {
     let alive = true
-    loadHeightfield()
+    loadHeightfieldOnce()
       .then((h) => {
         if (!alive) return
         setHf(h)

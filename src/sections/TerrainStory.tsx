@@ -3,6 +3,7 @@ import { useSectionProgress } from '../lib/useSectionProgress'
 import { canUseWebGL, prefersReducedMotion } from '../lib/env'
 import { fade } from '../scene/choreography'
 import { routeStats, ROUTE_UV } from '../terrain/route'
+import { formatRouteStats } from '../terrain/routeSummary'
 import { SLOPE_BANDS } from '../terrain/slope'
 import type { Heightfield } from '../terrain/decode'
 import { Wordmark } from '../ui/Wordmark'
@@ -63,11 +64,7 @@ export function TerrainStory() {
     return fade(p, a, b)
   }
 
-  const statsList = stats ? [
-    { label: 'max slope', value: `${Math.round(stats.maxSlopeDeg)}°` },
-    { label: 'gain', value: `${Math.round(stats.gainM)} m` },
-    { label: 'time', value: `${Math.floor(stats.minutes / 60)}:${String(stats.minutes % 60).padStart(2, '0')}` },
-  ] : []
+  const statsList = stats ? formatRouteStats(stats) : []
 
   const scene = !webgl || failed ? (
     <img src="./terrain/poster.webp" alt="" className="size-full object-cover" />
