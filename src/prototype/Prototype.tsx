@@ -1,9 +1,9 @@
 import { useReducer, useState } from 'react'
 import { prefersReducedMotion } from '../lib/env'
 import { formatRouteStats, useRouteStats } from '../terrain/routeSummary'
-import { initialState, reducer, type ScreenId } from './machine'
+import { initialState, reducer, type ProtoState, type ScreenId } from './machine'
 import { DEFAULT_CONDITIONS, type Conditions } from './conditions'
-import { PhoneFrame } from './PhoneFrame'
+import { PhoneFrame, type PhoneVariant } from './PhoneFrame'
 import { Stepper } from './Stepper'
 import { RouteScreen } from './RouteScreen'
 import { SlopeScreen } from './SlopeScreen'
@@ -18,11 +18,20 @@ const EMPTY_STATS = [
 /** Замер Плана 1 (routeStats по реальному DEM) — на случай, если карта высот не загрузилась. */
 const MEASURED_MAX_SLOPE = 38
 
-interface Props { conditions?: Conditions; initialScreen?: ScreenId }
+interface Props {
+  conditions?: Conditions
+  initialScreen?: ScreenId
+  /** Начальное состояние поверх initialScreen — для иллюстраций состояний на странице кейса. */
+  initial?: Partial<ProtoState>
+  /** 'app' — степпер + телефон (сайт продукта); 'figure' — только телефон в рамке. */
+  variant?: PhoneVariant
+  /** Подпись иллюстрации (обязательна по смыслу для variant="figure"). */
+  label?: string
+}
 
-export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'route' }: Props) {
+export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'route', initial, variant = 'app', label }: Props) {
   const [reduced] = useState(prefersReducedMotion)
-  const [state, dispatch] = useReducer(reducer, initialScreen, initialState)
+  const [state, dispatch] = useReducer(reducer, undefined, () => ({ ...initialState(initial?.screen ?? initialScreen), ...initial }))
   const stats = useRouteStats()
   const rows = stats ? formatRouteStats(stats) : EMPTY_STATS
   const slopeDeg = stats ? Math.round(stats.maxSlopeDeg) : MEASURED_MAX_SLOPE
@@ -34,6 +43,26 @@ export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'ro
     warning: <WarningScreen state={state} dispatch={dispatch} reduced={reduced} slopeDeg={slopeDeg} />,
   }[state.screen]
 
+  const phone = (
+    <PhoneFrame conditions={conditions} variant={variant}>
+      <div
+        key={state.screen}
+        className={`flex min-h-0 flex-1 flex-col ${reduced ? '' : 'animate-[screen-in_200ms_var(--ease-out-strong)]'}`}
+      >
+        {screen}
+      </div>
+    </PhoneFrame>
+  )
+
+  if (variant === 'figure') {
+    return (
+      <figure aria-label={label} className="flex flex-col items-center gap-4">
+        {phone}
+        {label && <figcaption className="font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted">{label}</figcaption>}
+      </figure>
+    )
+  }
+
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,32rem)_1fr] lg:items-center lg:gap-16">
       <Stepper current={state.screen} onGo={(id) => dispatch({ type: 'go', screen: id })} />
@@ -41,14 +70,7 @@ export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'ro
           the phone on mobile — bleed the wrapper to the viewport edge there, and let md:px-10
           take back over once the phone stops being full-bleed. */}
       <div className="-mx-4 md:mx-0 lg:justify-self-center">
-        <PhoneFrame conditions={conditions}>
-          <div
-            key={state.screen}
-            className={`flex min-h-0 flex-1 flex-col ${reduced ? '' : 'animate-[screen-in_200ms_var(--ease-out-strong)]'}`}
-          >
-            {screen}
-          </div>
-        </PhoneFrame>
+        {phone}
       </div>
     </div>
   )

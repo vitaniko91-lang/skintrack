@@ -44,4 +44,23 @@ describe('Prototype', () => {
     render(<Prototype conditions={{ ...DEFAULT_CONDITIONS, battery: 12 }} initialScreen="group" />)
     expect(screen.getByRole('status')).toHaveTextContent(/battery 12%/i)
   })
+
+  it('figure variant shows only the phone, in the requested state', () => {
+    render(<Prototype variant="figure" initial={{ screen: 'slope', routeBuilt: true, slopeOn: true }} label="Slope layer on" />)
+    expect(screen.queryByRole('button', { name: /build a route/i })).toBeNull() // степпера нет
+    expect(screen.getByRole('switch', { name: /slope layer/i })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('figure', { name: 'Slope layer on' })).toBeInTheDocument()
+  })
+
+  it('figure variant can start in a failed group check', () => {
+    render(
+      <Prototype
+        variant="figure"
+        conditions={{ ...DEFAULT_CONDITIONS, groupOk: false }}
+        initial={{ screen: 'group', check: 'failed' }}
+        label="Group check failed"
+      />,
+    )
+    expect(screen.getByRole('alert')).toHaveTextContent(/lena/i)
+  })
 })

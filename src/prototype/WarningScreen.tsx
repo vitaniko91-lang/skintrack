@@ -10,7 +10,9 @@ interface Props { state: ProtoState; dispatch: Dispatch<ProtoEvent>; reduced: bo
  */
 export function WarningScreen({ state, dispatch, reduced, slopeDeg }: Props) {
   useEffect(() => {
-    if (!reduced && !state.acknowledged) navigator.vibrate?.([180, 90, 180])
+    // Вибрирует только настоящий старт тура, а не показ экрана: на странице кейса этот
+    // экран стоит застывшей иллюстрацией, и через степпер на него тоже можно перейти.
+    if (state.started && !reduced && !state.acknowledged) navigator.vibrate?.([180, 90, 180])
     // только при появлении экрана
   }, [])
 

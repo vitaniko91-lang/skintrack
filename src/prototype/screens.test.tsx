@@ -66,14 +66,30 @@ describe('GroupScreen', () => {
 })
 
 describe('WarningScreen', () => {
-  it('vibrates once on arrival unless motion is reduced', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
+  it('vibrates when the tour starts, not when the screen is merely shown', () => {
     const vibrate = vi.fn()
     Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
+
     const { unmount } = render(<Harness start="warning" />)
-    expect(vibrate).toHaveBeenCalledWith([180, 90, 180])
+    expect(vibrate).not.toHaveBeenCalled()
     unmount()
-    vibrate.mockClear()
-    render(<Harness start="warning" reduced />)
+
+    render(<Harness start="group" reduced={false} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Run group check' }))
+    act(() => { vi.advanceTimersByTime(CHECK_STEP_MS * 5) })
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '100' } })
+    expect(vibrate).toHaveBeenCalledWith([180, 90, 180])
+  })
+
+  it('never vibrates with reduced motion', () => {
+    const vibrate = vi.fn()
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
+    render(<Harness start="group" reduced />)
+    fireEvent.click(screen.getByRole('button', { name: 'Run group check' }))
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '100' } })
     expect(vibrate).not.toHaveBeenCalled()
   })
 
