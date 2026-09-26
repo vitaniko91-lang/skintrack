@@ -24,13 +24,13 @@ export function WarningScreen({ state, dispatch, reduced, slopeDeg }: Props) {
   }
 
   return (
-    <div className="flex flex-1 flex-col justify-between bg-ground-1 p-6">
-      <div role="alert">
+    <div className="flex flex-1 flex-col bg-ground-1 p-6 max-md:mx-4 max-md:mb-4 max-md:rounded-[var(--radius-card)]">
+      <div role="alert" className="flex flex-1 flex-col justify-center">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">In 120 m · Couloir Nord</p>
-        <h3 className="mt-4 text-[5.5rem] font-extrabold leading-[0.85] tabular-nums" style={{ fontStretch: '125%' }}>
+        <h3 className="mt-4 text-[7rem] font-extrabold leading-[0.8] tabular-nums" style={{ fontStretch: '125%' }}>
           {slopeDeg}°
         </h3>
-        <p className="mt-4 text-2xl font-semibold">Slope ahead · Danger 3 · considerable</p>
+        <p className="mt-4 text-2xl font-semibold [text-wrap:balance]">Slope ahead · Danger 3 · considerable</p>
         <p className="mt-3 text-muted">Space out: one at a time, the next person waits at the rock.</p>
       </div>
       <div className="space-y-3">

@@ -2,7 +2,7 @@ import { SCREENS, type ScreenId } from './machine'
 
 export function Stepper({ current, onGo }: { current: ScreenId; onGo: (id: ScreenId) => void }) {
   return (
-    <ol className="space-y-2">
+    <ol className="max-w-xl space-y-2">
       {SCREENS.map((s, i) => (
         <li key={s.id}>
           <button

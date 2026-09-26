@@ -1,4 +1,4 @@
-import { uvToMap, polylinePoints, type MapCrop } from './mapCoords'
+import { uvToMap, polylinePoints, smoothPath, type MapCrop } from './mapCoords'
 import { MAP_CROP } from './mapCrop'
 import { ROUTE_UV } from '../terrain/route'
 
@@ -29,5 +29,19 @@ describe('real route on the generated map', () => {
       expect(y).toBeGreaterThan(MAP_CROP.height * 0.05)
       expect(y).toBeLessThan(MAP_CROP.height * 0.95)
     })
+  })
+})
+
+describe('smoothPath', () => {
+  const pts: [number, number][] = [[0, 0], [10, 20], [30, 25], [50, 60]]
+  it('starts at the first point, has n-1 cubic segments and ends at the last point', () => {
+    const d = smoothPath(pts)
+    expect(d.startsWith('M 0.0,0.0')).toBe(true)
+    expect(d.match(/C/g)).toHaveLength(pts.length - 1)
+    expect(d.endsWith('50.0,60.0')).toBe(true)
+  })
+  it('uses Catmull-Rom tangents (tension 0.5): first control point is p1 + (p2 - p0) / 6', () => {
+    // segment 0: p0 duplicated as the phantom before it → cp1 = p0 + (p1 - p0) / 6
+    expect(smoothPath(pts)).toContain('C 1.7,3.3')
   })
 })

@@ -1,35 +1,36 @@
 import { ROUTE_UV, WAYPOINTS } from '../terrain/route'
 import { MAP_CROP } from './mapCrop'
-import { polylinePoints, uvToMap } from './mapCoords'
+import { smoothPath, uvToMap } from './mapCoords'
 
 interface Props { drawn: boolean; slopeOn: boolean; reduced: boolean }
 
 /**
- * Две картинки и SVG одного размера (720×960), все в режиме contain: на высоких телефонах
- * (100svh) кадр не режет карту сбоку — вместо этого остаются поля с фоном карточки (ground-1).
+ * Две картинки и SVG одного размера (720×960), все в режиме cover/slice с центровкой: карта
+ * заполняет карточку без полей, а слои остаются совмещены. На высоких телефонах срезаются
+ * края по бокам — точки маршрута лежат в 10–90% ширины и остаются внутри (проверено на 375).
  */
 export function RouteMap({ drawn, slopeOn, reduced }: Props) {
-  const points = polylinePoints(ROUTE_UV, MAP_CROP)
+  const d = smoothPath(ROUTE_UV.map((p) => uvToMap(p, MAP_CROP)))
   return (
     <div
       role="img"
       aria-label={`Map: ascent from Schwarzsee to the shoulder${slopeOn ? ', slope layer on' : ''}`}
-      className="relative h-full w-full overflow-hidden rounded-[var(--radius-card)] bg-ground-1"
+      className="relative aspect-[3/4] max-h-full w-full overflow-hidden rounded-[var(--radius-card)] bg-ground-1"
     >
-      <img src="./terrain/map-base.webp" alt="" className="absolute inset-0 size-full object-contain" />
+      <img src="./terrain/map-base.webp" alt="" className="absolute inset-0 size-full object-cover" />
       <img
         src="./terrain/map-slope.webp"
         alt=""
-        className={`absolute inset-0 size-full object-contain ${reduced ? '' : 'transition-opacity duration-200'} ${slopeOn ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 size-full object-cover ${reduced ? '' : 'transition-opacity duration-200'} ${slopeOn ? 'opacity-100' : 'opacity-0'}`}
       />
       <svg
         viewBox={`0 0 ${MAP_CROP.width} ${MAP_CROP.height}`}
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio="xMidYMid slice"
         className="absolute inset-0 size-full"
         aria-hidden
       >
-        <polyline
-          points={points}
+        <path
+          d={d}
           pathLength={1}
           fill="none"
           stroke="var(--color-accent)"

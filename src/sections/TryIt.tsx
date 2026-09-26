@@ -4,7 +4,7 @@ import { Prototype } from '../prototype/Prototype'
 export function TryIt() {
   return (
     <section id="prototype" aria-labelledby="try-title" className="px-4 py-24 md:px-10 md:py-40">
-      <div className="mx-auto max-w-6xl">
+      <div>
         <MonoLabel>Prototype · 4 screens</MonoLabel>
         <h2
           id="try-title"
