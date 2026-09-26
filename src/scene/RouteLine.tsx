@@ -1,4 +1,4 @@
-import { useMemo, type RefObject } from 'react'
+import { useEffect, useMemo, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { CatmullRomCurve3, Color, ShaderMaterial, TubeGeometry, Vector3 } from 'three'
 import { heightAt, type Heightfield } from '../terrain/decode'
@@ -50,6 +50,9 @@ export function RouteLine({ hf, progress, startedAt, reduced }: Props) {
     return new TubeGeometry(curve, 240, 0.028, 6, false)
   }, [hf])
   const material = useMemo(() => createRouteMaterial(), [])
+
+  useEffect(() => () => { geometry.dispose() }, [geometry])
+  useEffect(() => () => { material.dispose() }, [material])
 
   useFrame(() => {
     const rise = introState(performance.now() - startedAt, reduced).rise

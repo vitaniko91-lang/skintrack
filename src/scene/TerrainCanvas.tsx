@@ -6,20 +6,33 @@ import { Terrain } from './Terrain'
 import { RouteLine } from './RouteLine'
 import { CameraRig } from './CameraRig'
 
-interface Props { progress: RefObject<number>; reduced: boolean; onReady?: (hf: Heightfield) => void }
+interface Props {
+  progress: RefObject<number>
+  reduced: boolean
+  onReady?: (hf: Heightfield) => void
+  onError?: () => void
+}
 
-export default function TerrainCanvas({ progress, reduced, onReady }: Props) {
+export default function TerrainCanvas({ progress, reduced, onReady, onError }: Props) {
   const [hf, setHf] = useState<Heightfield | null>(null)
   const [startedAt, setStartedAt] = useState(0)
   const segments = typeof window !== 'undefined' && window.innerWidth < 768 ? 128 : 256
 
   useEffect(() => {
-    loadHeightfield().then((h) => {
-      setHf(h)
-      setStartedAt(performance.now())
-      onReady?.(h)
-    })
-  }, [onReady])
+    let alive = true
+    loadHeightfield()
+      .then((h) => {
+        if (!alive) return
+        setHf(h)
+        setStartedAt(performance.now())
+        onReady?.(h)
+      })
+      .catch(() => {
+        if (!alive) return
+        onError?.()
+      })
+    return () => { alive = false }
+  }, [onReady, onError])
 
   if (!hf) return null
   return (

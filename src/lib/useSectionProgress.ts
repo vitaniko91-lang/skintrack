@@ -5,10 +5,13 @@ import { sectionProgress } from '../scene/choreography'
  * Пишет прогресс секции в ref без ре-рендеров: читают useFrame и подписи.
  * rAF-цикл идёт только пока секция пересекает viewport (IntersectionObserver) —
  * иначе он молотит кадры на 60Hz для секции, которую никто не видит.
+ * `enabled=false` (reduced motion) отключает цикл целиком — прогресс не нужен,
+ * когда сцена и подписи статичны.
  */
-export function useSectionProgress(el: RefObject<HTMLElement | null>) {
+export function useSectionProgress(el: RefObject<HTMLElement | null>, enabled = true) {
   const progress = useRef(0)
   useEffect(() => {
+    if (!enabled) return
     let raf = 0
     const read = () => {
       const node = el.current
@@ -36,6 +39,6 @@ export function useSectionProgress(el: RefObject<HTMLElement | null>) {
     })
     io.observe(node)
     return () => { io.disconnect(); stop() }
-  }, [el])
+  }, [el, enabled])
   return progress
 }

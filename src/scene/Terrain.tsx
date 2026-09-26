@@ -1,4 +1,4 @@
-import { useMemo, type RefObject } from 'react'
+import { useEffect, useMemo, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import type { Heightfield } from '../terrain/decode'
 import { buildTerrainGeometry } from './terrainGeometry'
@@ -16,6 +16,9 @@ interface Props {
 export function Terrain({ hf, segments, progress, startedAt, reduced }: Props) {
   const geometry = useMemo(() => buildTerrainGeometry(hf, segments), [hf, segments])
   const material = useMemo(() => createTerrainMaterial(), [])
+
+  useEffect(() => () => { geometry.dispose() }, [geometry])
+  useEffect(() => () => { material.dispose() }, [material])
 
   useFrame(() => {
     const intro = introState(performance.now() - startedAt, reduced)
