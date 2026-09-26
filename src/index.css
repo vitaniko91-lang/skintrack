@@ -3,7 +3,7 @@
 @import "@fontsource-variable/jetbrains-mono";
 @plugin "@iconify/tailwind4";
 
-@theme {
+@theme static {
   --color-ground: #0a0f15;
   --color-ground-1: #131c25;
   --color-ground-2: #1c2833;
