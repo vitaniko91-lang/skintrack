@@ -22,6 +22,7 @@ describe('group check', () => {
     const c = { ...DEFAULT_CONDITIONS, groupOk: false }
     expect(checkPasses(c)).toBe(false)
     expect(checkItems(c)[0].detail).toMatch(/lena: off/i)
+    expect(checkItems(c)[0].reason).toBe("Lena's transceiver is off")
   })
   it('no cell signal does not block the tour, but is reported', () => {
     const c = { ...DEFAULT_CONDITIONS, signal: false }

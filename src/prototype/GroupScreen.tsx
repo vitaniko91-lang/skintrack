@@ -12,11 +12,15 @@ interface Props { state: ProtoState; dispatch: Dispatch<ProtoEvent>; conditions:
 export function GroupScreen({ state, dispatch, conditions, reduced }: Props) {
   const items = checkItems(conditions)
   const [shown, setShown] = useState(0)
+  const { groupOk, signal } = conditions
 
   useEffect(() => {
     if (state.check !== 'running') return
-    const count = checkItems(conditions).length
-    const ok = checkPasses(conditions)
+    // Depend on the two fields the check result actually reads, not the whole conditions
+    // object — a battery tick shouldn't restart the check's reveal timers mid-run.
+    const runConditions: Conditions = { groupOk, signal, battery: 0 }
+    const count = checkItems(runConditions).length
+    const ok = checkPasses(runConditions)
     if (reduced) {
       setShown(count)
       dispatch({ type: 'checkDone', ok })
@@ -27,10 +31,17 @@ export function GroupScreen({ state, dispatch, conditions, reduced }: Props) {
       setTimeout(() => setShown(i + 1), (i + 1) * CHECK_STEP_MS))
     timers.push(setTimeout(() => dispatch({ type: 'checkDone', ok }), (count + 1) * CHECK_STEP_MS))
     return () => timers.forEach(clearTimeout)
-  }, [state.check, conditions, reduced, dispatch])
+  }, [state.check, groupOk, signal, reduced, dispatch])
 
   const visible = state.check === 'idle' ? 0 : state.check === 'running' ? shown : items.length
   const failed = items.find((i) => !i.ok)
+
+  // Reset the reveal count in the same event as the (re)start dispatch, so a re-check
+  // never paints a frame where the rows still show the previous run as done.
+  const startCheck = () => {
+    setShown(0)
+    dispatch({ type: 'startCheck' })
+  }
 
   return (
     <ScreenShell index={3} title="Check the group">
@@ -54,12 +65,17 @@ export function GroupScreen({ state, dispatch, conditions, reduced }: Props) {
       <div className="space-y-4 p-4">
         {state.check === 'failed' && failed && (
           <p role="alert" className="text-base">
-            {failed.detail.replace(/^.*· /, '')}. Nobody leaves until every transceiver is sending.
+            {failed.reason}. Nobody leaves until every transceiver is sending.
           </p>
         )}
-        {state.check === 'idle' && <PrimaryButton onClick={() => dispatch({ type: 'startCheck' })}>Run group check</PrimaryButton>}
-        {state.check === 'running' && <PrimaryButton disabled>Checking…</PrimaryButton>}
-        {state.check === 'failed' && <PrimaryButton onClick={() => dispatch({ type: 'startCheck' })}>Re-check</PrimaryButton>}
+        {state.check !== 'passed' && (
+          // One button element across idle/running/failed — only its label and aria-disabled
+          // change, so a keyboard user's focus stays put instead of dropping to body when the
+          // state (and previously, the JSX slot) changed underneath them.
+          <PrimaryButton onClick={startCheck} ariaDisabled={state.check === 'running'}>
+            {state.check === 'failed' ? 'Re-check' : state.check === 'running' ? 'Checking…' : 'Run group check'}
+          </PrimaryButton>
+        )}
         {state.check === 'passed' && <SlideToConfirm label="Slide to start tour" onConfirm={() => dispatch({ type: 'startTour' })} />}
       </div>
     </ScreenShell>

@@ -19,11 +19,17 @@ describe('GroupScreen', () => {
   it('reveals checks one by one, then offers the slide to start', () => {
     render(<Harness start="group" />)
     fireEvent.click(screen.getByRole('button', { name: 'Run group check' }))
-    expect(screen.getByRole('button', { name: 'Checking…' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Checking…' })).toHaveAttribute('aria-disabled', 'true')
     act(() => { vi.advanceTimersByTime(CHECK_STEP_MS) })
     expect(screen.getByText('3 of 3 sending')).toBeInTheDocument()
     act(() => { vi.advanceTimersByTime(CHECK_STEP_MS * 3) })
     expect(screen.getByRole('slider', { name: 'Slide to start tour' })).toBeInTheDocument()
+  })
+
+  it('moves focus to the slider once the check passes', () => {
+    render(<Harness start="group" reduced />)
+    fireEvent.click(screen.getByRole('button', { name: 'Run group check' }))
+    expect(document.activeElement).toBe(screen.getByRole('slider', { name: 'Slide to start tour' }))
   })
 
   it('blocks the start and names the problem when a transceiver is off', () => {

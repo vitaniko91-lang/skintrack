@@ -5,8 +5,8 @@ import { polylinePoints, uvToMap } from './mapCoords'
 interface Props { drawn: boolean; slopeOn: boolean; reduced: boolean }
 
 /**
- * Две картинки и SVG одного размера (720×960), все в режиме cover: масштаб у них
- * одинаковый, поэтому трек ложится ровно на склон при любой высоте телефона.
+ * Две картинки и SVG одного размера (720×960), все в режиме contain: на высоких телефонах
+ * (100svh) кадр не режет карту сбоку — вместо этого остаются поля с фоном карточки (ground-1).
  */
 export function RouteMap({ drawn, slopeOn, reduced }: Props) {
   const points = polylinePoints(ROUTE_UV, MAP_CROP)
@@ -16,15 +16,15 @@ export function RouteMap({ drawn, slopeOn, reduced }: Props) {
       aria-label={`Map: ascent from Schwarzsee to the shoulder${slopeOn ? ', slope layer on' : ''}`}
       className="relative h-full w-full overflow-hidden rounded-[var(--radius-card)] bg-ground-1"
     >
-      <img src="./terrain/map-base.webp" alt="" className="absolute inset-0 size-full object-cover" />
+      <img src="./terrain/map-base.webp" alt="" className="absolute inset-0 size-full object-contain" />
       <img
         src="./terrain/map-slope.webp"
         alt=""
-        className={`absolute inset-0 size-full object-cover ${reduced ? '' : 'transition-opacity duration-200'} ${slopeOn ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 size-full object-contain ${reduced ? '' : 'transition-opacity duration-200'} ${slopeOn ? 'opacity-100' : 'opacity-0'}`}
       />
       <svg
         viewBox={`0 0 ${MAP_CROP.width} ${MAP_CROP.height}`}
-        preserveAspectRatio="xMidYMid slice"
+        preserveAspectRatio="xMidYMid meet"
         className="absolute inset-0 size-full"
         aria-hidden
       >
@@ -40,10 +40,13 @@ export function RouteMap({ drawn, slopeOn, reduced }: Props) {
           strokeDashoffset={drawn ? 0 : 1}
           style={{ transition: drawn && !reduced ? 'stroke-dashoffset 1200ms var(--ease-out-strong)' : 'none' }}
         />
-        {drawn && WAYPOINTS.map((w) => {
-          const [x, y] = uvToMap(ROUTE_UV[w.index], MAP_CROP)
-          return <circle key={w.name} cx={x} cy={y} r={11} fill="var(--color-ground)" stroke="var(--color-accent)" strokeWidth={5} />
-        })}
+        {/* Waypoints fade in after the line has mostly drawn, instead of popping in with it. */}
+        <g style={{ opacity: drawn ? 1 : 0, transition: drawn && !reduced ? 'opacity 400ms var(--ease-out-strong) 900ms' : 'none' }}>
+          {WAYPOINTS.map((w) => {
+            const [x, y] = uvToMap(ROUTE_UV[w.index], MAP_CROP)
+            return <circle key={w.name} cx={x} cy={y} r={11} fill="var(--color-ground)" stroke="var(--color-accent)" strokeWidth={5} />
+          })}
+        </g>
       </svg>
     </div>
   )

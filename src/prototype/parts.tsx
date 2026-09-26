@@ -3,9 +3,25 @@ import type { ReactNode } from 'react'
 /** Кнопки телефона: 56 px в высоту — палец в перчатке, не курсор. */
 const BASE = 'inline-flex h-14 w-full items-center justify-center gap-2 rounded-full px-6 text-base font-semibold transition-[scale,background-color,box-shadow] duration-200 active:scale-[0.97] disabled:opacity-60'
 
-export function PrimaryButton({ children, onClick, disabled }: { children: ReactNode; onClick?: () => void; disabled?: boolean }) {
+export function PrimaryButton({
+  children,
+  onClick,
+  disabled,
+  ariaDisabled,
+}: {
+  children: ReactNode
+  onClick?: () => void
+  disabled?: boolean
+  ariaDisabled?: boolean
+}) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className={`${BASE} bg-accent text-ground`}>
+    <button
+      type="button"
+      onClick={() => { if (!ariaDisabled) onClick?.() }}
+      disabled={disabled}
+      aria-disabled={ariaDisabled ? true : undefined}
+      className={`${BASE} bg-accent text-ground ${ariaDisabled ? 'opacity-60' : ''}`}
+    >
       {children}
     </button>
   )
