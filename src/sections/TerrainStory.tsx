@@ -78,7 +78,7 @@ export function TerrainStory() {
   )
 
   const coords = (
-    <header className="pointer-events-none absolute inset-x-0 top-0 flex justify-between p-6 md:p-10">
+    <header className="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-1 whitespace-nowrap p-6 sm:flex-row sm:justify-between md:p-10">
       <MonoLabel>45.9763°N · 7.6586°E</MonoLabel>
       <MonoLabel>Matterhorn · 4478 m</MonoLabel>
     </header>
@@ -135,7 +135,7 @@ export function TerrainStory() {
           <p className="mt-4 max-w-md text-lg text-muted">Read the slope before it reads you.</p>
         </div>
 
-        <div className="absolute left-6 top-1/2 max-w-sm -translate-y-1/2 md:left-10" style={{ opacity: show('slope') }}>
+        <div className="absolute left-6 top-1/2 max-w-sm -translate-y-1/2 before:pointer-events-none before:absolute before:-inset-x-16 before:-inset-y-12 before:-z-10 before:bg-[radial-gradient(closest-side,var(--color-ground)_50%,transparent)] before:opacity-90 md:left-10" style={{ opacity: show('slope') }}>
           <MonoLabel>Slope layer</MonoLabel>
           <h2 className="mt-3 text-4xl font-bold tracking-[-0.02em]" style={{ fontStretch: '115%' }}>
             Most avalanches start between 30° and 45°.
