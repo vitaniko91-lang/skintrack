@@ -47,7 +47,9 @@ export function reducer(s: ProtoState, e: ProtoEvent): ProtoState {
     case 'startCheck':
       return s.check === 'running' ? s : { ...s, check: 'running' }
     case 'checkDone':
-      return { ...s, check: e.ok ? 'passed' : 'failed' }
+      // Стейл-таймер (напр. после reset/go на другой экран) не должен задним числом
+      // подтверждать проверку — засчитывается только результат текущего запуска.
+      return s.check === 'running' ? { ...s, check: e.ok ? 'passed' : 'failed' } : s
     case 'startTour':
       return s.check === 'passed' ? { ...s, started: true, screen: 'warning' } : s
     case 'acknowledge':

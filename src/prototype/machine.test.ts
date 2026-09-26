@@ -38,6 +38,12 @@ describe('reducer', () => {
     expect(reducer(running, { type: 'checkDone', ok: true }).check).toBe('passed')
     expect(reducer(running, { type: 'checkDone', ok: false }).check).toBe('failed')
   })
+  it('ignores checkDone when no check is running', () => {
+    const idle = initialState('group')
+    expect(reducer(idle, { type: 'checkDone', ok: true })).toBe(idle)
+    const passed = { ...idle, check: 'passed' as const }
+    expect(reducer(passed, { type: 'checkDone', ok: false })).toBe(passed)
+  })
   it('a failed check can be re-run', () => {
     const failed = { ...initialState('group'), check: 'failed' as const }
     expect(reducer(failed, { type: 'startCheck' }).check).toBe('running')
