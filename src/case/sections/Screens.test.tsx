@@ -22,8 +22,7 @@ describe('Screens', () => {
     const notices = screen.getAllByRole('status').map((n) => n.textContent)
     expect(notices.some((t) => /no signal/i.test(t ?? ''))).toBe(true)
     expect(notices.some((t) => /battery 12%/i.test(t ?? ''))).toBe(true)
-    const alerts = screen.getAllByRole('alert').map((a) => a.textContent ?? '')
-    expect(alerts.some((t) => /lena/i.test(t))).toBe(true)
+    expect(screen.getAllByText(/lena/i).length).toBeGreaterThan(0)
   })
   it('does not vibrate on page load', () => {
     const vibrate = vi.fn()
@@ -31,5 +30,10 @@ describe('Screens', () => {
     window.matchMedia = (() => ({ matches: false })) as never
     render(<Screens />)
     expect(vibrate).not.toHaveBeenCalled()
+  })
+  it('screens are frozen illustrations, not live UI: no alert role, no slope-degree heading', () => {
+    render(<Screens />)
+    expect(screen.queryAllByRole('alert')).toHaveLength(0)
+    expect(screen.queryByRole('heading', { name: '38°' })).toBeNull()
   })
 })

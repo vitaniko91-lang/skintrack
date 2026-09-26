@@ -2,7 +2,7 @@ import { DECISIONS } from '../content'
 import { CaseSection } from '../ui/CaseSection'
 import { TradeoffTable } from '../ui/TradeoffTable'
 
-const LABEL = 'font-mono text-[0.625rem] uppercase tracking-[0.14em] text-muted'
+const LABEL = 'font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted'
 
 export function Decisions() {
   return (

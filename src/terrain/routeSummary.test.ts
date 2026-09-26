@@ -1,4 +1,4 @@
-import { formatDuration, formatRouteStats, loadHeightfieldOnce, resetHeightfieldCache } from './routeSummary'
+import { formatDuration, formatRouteStats, loadHeightfieldOnce, loadRouteStatsOnce, resetHeightfieldCache, resetRouteStatsCache } from './routeSummary'
 import { loadHeightfield } from './loadHeightfield'
 
 vi.mock('./loadHeightfield', () => ({ loadHeightfield: vi.fn() }))
@@ -39,6 +39,29 @@ describe('loadHeightfieldOnce', () => {
     await expect(loadHeightfieldOnce()).rejects.toThrow('offline')
     mockedLoad.mockResolvedValueOnce({ width: 1, height: 1, heights: new Float32Array(1), minH: 0, maxH: 0, cellMeters: 1 })
     await expect(loadHeightfieldOnce()).resolves.toBeTruthy()
+    expect(mockedLoad).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('loadRouteStatsOnce', () => {
+  beforeEach(() => { resetHeightfieldCache(); resetRouteStatsCache(); mockedLoad.mockReset() })
+
+  const hf = { width: 3, height: 3, heights: new Float32Array(9), minH: 0, maxH: 0, cellMeters: 1 }
+
+  it('computes route stats (routeStats + slopeGrid) only once, reusing the same object, for repeated/concurrent callers', async () => {
+    mockedLoad.mockResolvedValue(hf)
+    const [a, b] = await Promise.all([loadRouteStatsOnce(), loadRouteStatsOnce()])
+    expect(a).toBe(b)
+    const c = await loadRouteStatsOnce()
+    expect(c).toBe(a)
+    expect(mockedLoad).toHaveBeenCalledTimes(1)
+  })
+
+  it('retries after a failed computation instead of caching the failure', async () => {
+    mockedLoad.mockRejectedValueOnce(new Error('offline'))
+    await expect(loadRouteStatsOnce()).rejects.toThrow('offline')
+    mockedLoad.mockResolvedValueOnce(hf)
+    await expect(loadRouteStatsOnce()).resolves.toBeTruthy()
     expect(mockedLoad).toHaveBeenCalledTimes(2)
   })
 })

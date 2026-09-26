@@ -1,4 +1,5 @@
-import type { ReactNode, Ref } from 'react'
+import { useContext, type ReactNode, type Ref } from 'react'
+import { FigureContext } from './figureContext'
 
 /** Кнопки телефона: 56 px в высоту — палец в перчатке, не курсор. */
 const BASE = 'inline-flex h-14 w-full items-center justify-center gap-2 rounded-full px-6 text-base font-semibold transition-[scale,background-color,box-shadow] duration-200 active:scale-[0.97] disabled:opacity-60'
@@ -39,10 +40,14 @@ export function SecondaryButton({ children, onClick }: { children: ReactNode; on
 }
 
 export function ScreenShell({ index, title, children }: { index: number; title: string; children: ReactNode }) {
+  // A figure illustration isn't a live screen — its title shouldn't register as a heading
+  // in the page's outline.
+  const isFigure = useContext(FigureContext)
+  const Title = isFigure ? 'p' : 'h3'
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="flex items-baseline justify-between px-5 pb-3 pt-2">
-        <h3 className="text-xl font-bold tracking-[-0.02em]" style={{ fontStretch: '115%' }}>{title}</h3>
+        <Title className="text-xl font-bold tracking-[-0.02em]" style={{ fontStretch: '115%' }}>{title}</Title>
         <span className="font-mono text-xs tabular-nums text-muted">{index}/4</span>
       </header>
       {children}

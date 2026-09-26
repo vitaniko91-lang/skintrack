@@ -1,5 +1,6 @@
-import type { Dispatch } from 'react'
+import { useContext, type Dispatch } from 'react'
 import type { ProtoEvent, ProtoState } from './machine'
+import { FigureContext } from './figureContext'
 import { PrimaryButton, SecondaryButton } from './parts'
 
 interface Props { state: ProtoState; dispatch: Dispatch<ProtoEvent>; reduced: boolean; slopeDeg: number }
@@ -12,6 +13,10 @@ interface Props { state: ProtoState; dispatch: Dispatch<ProtoEvent>; reduced: bo
  * иллюстрация на странице кейса или переход сюда через степпер вибрировали бы тоже.
  */
 export function WarningScreen({ state, dispatch, slopeDeg }: Props) {
+  // A frozen illustration on the case page isn't a live alert or heading — drop both, keep the text.
+  const isFigure = useContext(FigureContext)
+  const SlopeTitle = isFigure ? 'p' : 'h3'
+
   if (state.acknowledged) {
     return (
       <div className="flex flex-1 flex-col justify-between p-6">
@@ -23,11 +28,11 @@ export function WarningScreen({ state, dispatch, slopeDeg }: Props) {
 
   return (
     <div className="flex flex-1 flex-col bg-ground-1 p-6 max-md:mx-4 max-md:mb-4 max-md:rounded-[var(--radius-card)]">
-      <div role="alert" className="flex flex-1 flex-col justify-center">
+      <div role={isFigure ? undefined : 'alert'} className="flex flex-1 flex-col justify-center">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">In 120 m · Couloir Nord</p>
-        <h3 className="mt-4 text-[7rem] font-extrabold leading-[0.8] tabular-nums" style={{ fontStretch: '125%' }}>
+        <SlopeTitle className="mt-4 text-[7rem] font-extrabold leading-[0.8] tabular-nums" style={{ fontStretch: '125%' }}>
           {slopeDeg}°
-        </h3>
+        </SlopeTitle>
         <p className="mt-4 text-2xl font-semibold [text-wrap:balance]">Slope ahead · Danger 3 · considerable</p>
         <p className="mt-3 text-muted">Space out: one at a time, the next person waits at the rock.</p>
       </div>

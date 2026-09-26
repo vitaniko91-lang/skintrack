@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type Dispatch } from 'react'
+import { useContext, useEffect, useRef, useState, type Dispatch } from 'react'
 import type { ProtoEvent, ProtoState } from './machine'
 import { checkItems, checkPasses, type Conditions } from './conditions'
+import { FigureContext } from './figureContext'
 import { PrimaryButton, ScreenShell } from './parts'
 import { SlideToConfirm } from './SlideToConfirm'
 
@@ -10,6 +11,8 @@ export const CHECK_STEP_MS = 350
 interface Props { state: ProtoState; dispatch: Dispatch<ProtoEvent>; conditions: Conditions; reduced: boolean }
 
 export function GroupScreen({ state, dispatch, conditions, reduced }: Props) {
+  // A frozen illustration on the case page isn't a live alert — drop the role, keep the text.
+  const isFigure = useContext(FigureContext)
   const items = checkItems(conditions)
   const [shown, setShown] = useState(0)
   const { groupOk, signal } = conditions
@@ -71,7 +74,7 @@ export function GroupScreen({ state, dispatch, conditions, reduced }: Props) {
       </ul>
       <div className="space-y-4 p-4">
         {state.check === 'failed' && failed && (
-          <p role="alert" className="text-base">
+          <p role={isFigure ? undefined : 'alert'} className="text-base">
             {failed.reason}. Nobody leaves until every transceiver is sending.
           </p>
         )}

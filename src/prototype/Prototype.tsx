@@ -4,6 +4,7 @@ import { formatRouteStats, useRouteStats } from '../terrain/routeSummary'
 import { initialState, reducer, type ProtoState, type ScreenId } from './machine'
 import { DEFAULT_CONDITIONS, type Conditions } from './conditions'
 import { PhoneFrame, type PhoneVariant } from './PhoneFrame'
+import { FigureContext } from './figureContext'
 import { Stepper } from './Stepper'
 import { RouteScreen } from './RouteScreen'
 import { SlopeScreen } from './SlopeScreen'
@@ -65,10 +66,12 @@ export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'ro
 
   if (variant === 'figure') {
     return (
-      <figure aria-label={label} className="flex w-full flex-col items-center gap-4">
-        {phone}
-        {label && <figcaption className="font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted">{label}</figcaption>}
-      </figure>
+      <FigureContext value={true}>
+        <figure aria-label={label} className="flex w-full flex-col items-center gap-4">
+          {phone}
+          {label && <figcaption className="font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted">{label}</figcaption>}
+        </figure>
+      </FigureContext>
     )
   }
 

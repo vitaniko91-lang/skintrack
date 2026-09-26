@@ -27,7 +27,7 @@ export function TradeoffTable({ decision }: { decision: Decision }) {
                 <th scope="row" className="w-[22%] px-5 py-5 font-semibold">
                   {o.name}
                   {chosen && (
-                    <span className="mt-2 block font-mono text-[0.625rem] uppercase tracking-[0.14em] text-accent">Chosen</span>
+                    <span className="mt-2 block font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-accent">Chosen</span>
                   )}
                 </th>
                 <td className="px-5 py-5 text-body">

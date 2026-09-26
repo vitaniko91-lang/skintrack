@@ -61,7 +61,7 @@ describe('Prototype', () => {
     expect(screen.queryByText('3 of 3 sending')).toBeNull()
   })
 
-  it('figure variant can start in a failed group check', () => {
+  it('figure variant can start in a failed group check, without an alert role — it is a frozen illustration', () => {
     render(
       <Prototype
         variant="figure"
@@ -70,6 +70,13 @@ describe('Prototype', () => {
         label="Group check failed"
       />,
     )
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(screen.getAllByText(/lena/i).length).toBeGreaterThan(0)
+  })
+
+  it('app (non-figure) variant keeps the live alert role for a failed group check', () => {
+    render(<Prototype conditions={{ ...DEFAULT_CONDITIONS, groupOk: false }} initialScreen="group" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Run group check' }))
     expect(screen.getByRole('alert')).toHaveTextContent(/lena/i)
   })
 })

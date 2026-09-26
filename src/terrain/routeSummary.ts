@@ -19,6 +19,28 @@ export function resetHeightfieldCache() {
   cached = null
 }
 
+let statsCache: Promise<RouteStats> | null = null
+
+/**
+ * Одна расчёт статистики маршрута (и, внутри неё, slopeGrid по всей карте высот) на страницу —
+ * телефон, 3D-сцена и что угодно ещё видят один и тот же промис, а не пересчитывают его каждый
+ * при собственном рендере.
+ */
+export function loadRouteStatsOnce(): Promise<RouteStats> {
+  statsCache ??= loadHeightfieldOnce()
+    .then((hf) => routeStats(hf, ROUTE_UV))
+    .catch((error: unknown) => {
+      statsCache = null
+      throw error
+    })
+  return statsCache
+}
+
+/** Только для тестов. */
+export function resetRouteStatsCache() {
+  statsCache = null
+}
+
 export function formatDuration(minutes: number): string {
   return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`
 }
@@ -36,8 +58,8 @@ export function useRouteStats(): RouteStats | null {
   const [stats, setStats] = useState<RouteStats | null>(null)
   useEffect(() => {
     let alive = true
-    loadHeightfieldOnce()
-      .then((hf) => { if (alive) setStats(routeStats(hf, ROUTE_UV)) })
+    loadRouteStatsOnce()
+      .then((s) => { if (alive) setStats(s) })
       .catch(() => { /* сводка просто остаётся пустой — сцена показывает свой фолбэк */ })
     return () => { alive = false }
   }, [])

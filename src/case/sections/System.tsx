@@ -72,7 +72,7 @@ export function System() {
               alt="Top-down relief of the Matterhorn’s north side drawn with contour lines."
               loading="lazy"
               decoding="async"
-              className="aspect-[4/3] w-full rounded-[var(--radius-card)] object-cover"
+              className="aspect-[3/4] w-full max-w-md rounded-[var(--radius-card)] object-cover"
             />
             <figcaption className="mt-3 text-sm text-muted">
               Contours every 50 m, index lines every 250 m. One elevation model feeds the 3D scene, the phone map and the slope layer — so the route lands on the same slope everywhere.
