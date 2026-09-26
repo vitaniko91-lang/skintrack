@@ -19,4 +19,17 @@ describe('PhotoBand', () => {
     render(<PhotoBand />)
     expect(screen.getByRole('link', { name: PHOTO.credit })).toHaveAttribute('href', PHOTO.creditUrl)
   })
+  it('extends the credit link hit area to at least 40px tall via a pseudo-element, without resizing the visible text', () => {
+    render(<PhotoBand />)
+    const link = screen.getByRole('link', { name: PHOTO.credit })
+    // jsdom doesn't compute real layout, so the ≥40px target-size floor (design.md) is
+    // verified by the utility classes that produce it: `before:-inset-y-3` gives 24px of
+    // extra height around the ~11px/line-height text, clearing 40px without touching the
+    // link's own box (no padding/margin change that would alter its visible size).
+    expect(link.className).toContain('relative')
+    expect(link.className).toContain("before:content-['']")
+    expect(link.className).toContain('before:absolute')
+    expect(link.className).toContain('before:-inset-y-3')
+    expect(link.className).toContain('before:-inset-x-1')
+  })
 })

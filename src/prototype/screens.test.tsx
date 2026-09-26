@@ -26,10 +26,27 @@ describe('GroupScreen', () => {
     expect(screen.getByRole('slider', { name: 'Slide to start tour' })).toBeInTheDocument()
   })
 
-  it('moves focus to the slider once the check passes', () => {
+  it('moves focus to the slider once the check passes, when the check button had focus (keyboard-started)', () => {
+    render(<Harness start="group" reduced />)
+    const button = screen.getByRole('button', { name: 'Run group check' })
+    button.focus()
+    fireEvent.click(button)
+    expect(document.activeElement).toBe(screen.getByRole('slider', { name: 'Slide to start tour' }))
+  })
+
+  it('leaves focus alone when the check button did not have focus (mouse/touch, scrolled away)', () => {
     render(<Harness start="group" reduced />)
     fireEvent.click(screen.getByRole('button', { name: 'Run group check' }))
-    expect(document.activeElement).toBe(screen.getByRole('slider', { name: 'Slide to start tour' }))
+    expect(document.activeElement).not.toBe(screen.getByRole('slider', { name: 'Slide to start tour' }))
+  })
+
+  it('does not focus the slider when GroupScreen mounts already passed (e.g. jumping back via the Stepper)', () => {
+    function PassedHarness() {
+      const [state, dispatch] = useReducer(reducer, { ...initialState('group'), check: 'passed' as const })
+      return <GroupScreen state={state} dispatch={dispatch} conditions={DEFAULT_CONDITIONS} reduced />
+    }
+    render(<PassedHarness />)
+    expect(document.activeElement).not.toBe(screen.getByRole('slider', { name: 'Slide to start tour' }))
   })
 
   it('blocks the start and names the problem when a transceiver is off', () => {

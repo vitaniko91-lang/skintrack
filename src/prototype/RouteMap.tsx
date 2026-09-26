@@ -39,10 +39,13 @@ export function RouteMap({ drawn, slopeOn, reduced }: Props) {
           strokeLinejoin="round"
           strokeDasharray="1 1.01"
           strokeDashoffset={drawn ? 0 : 1}
-          style={{ transition: drawn && !reduced ? 'stroke-dashoffset 1200ms var(--ease-out-strong)' : 'none' }}
+          className={drawn && !reduced ? 'transition-[stroke-dashoffset] duration-[1200ms] ease-[var(--ease-out-strong)]' : ''}
         />
         {/* Waypoints fade in after the line has mostly drawn, instead of popping in with it. */}
-        <g style={{ opacity: drawn ? 1 : 0, transition: drawn && !reduced ? 'opacity 400ms var(--ease-out-strong) 900ms' : 'none' }}>
+        <g
+          style={{ opacity: drawn ? 1 : 0 }}
+          className={drawn && !reduced ? 'transition-[opacity] duration-[400ms] ease-[var(--ease-out-strong)] delay-[900ms]' : ''}
+        >
           {WAYPOINTS.map((w) => {
             const [x, y] = uvToMap(ROUTE_UV[w.index], MAP_CROP)
             return <circle key={w.name} cx={x} cy={y} r={11} fill="var(--color-ground)" stroke="var(--color-accent)" strokeWidth={5} />

@@ -26,7 +26,14 @@ export function PhotoBand() {
           />
         </picture>
         <figcaption className="mt-3 font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted">
-          Photo · <a href={PHOTO.creditUrl} className="underline decoration-line underline-offset-4 hover:text-accent">{PHOTO.credit}</a> / Unsplash
+          Photo ·{' '}
+          <a
+            href={PHOTO.creditUrl}
+            className="relative underline decoration-line underline-offset-4 before:absolute before:-inset-y-3 before:-inset-x-1 before:content-[''] hover:text-accent"
+          >
+            {PHOTO.credit}
+          </a>{' '}
+          / Unsplash
         </figcaption>
       </figure>
       <h2

@@ -55,4 +55,24 @@ describe('SlideToConfirm', () => {
     fireEvent.change(slider, { target: { value: '100' } })
     expect(onConfirm).toHaveBeenCalledTimes(1)
   })
+  it('snaps back when the pointer is cancelled mid-drag (e.g. an OS gesture interrupts)', () => {
+    const onConfirm = vi.fn()
+    render(<SlideToConfirm label="Slide" onConfirm={onConfirm} />)
+    const slider = screen.getByRole('slider', { name: 'Slide' })
+    fireEvent.pointerDown(slider)
+    fireEvent.change(slider, { target: { value: '60' } })
+    fireEvent.pointerCancel(slider)
+    expect((slider as HTMLInputElement).value).toBe('0')
+    expect(onConfirm).not.toHaveBeenCalled()
+  })
+  it('captures the pointer on pointer down so the drag keeps tracking outside the track', () => {
+    const onConfirm = vi.fn()
+    render(<SlideToConfirm label="Slide" onConfirm={onConfirm} />)
+    const slider = screen.getByRole('slider', { name: 'Slide' }) as HTMLInputElement
+    const setPointerCapture = vi.fn()
+    // jsdom doesn't implement pointer capture; stub it to verify the call.
+    Object.defineProperty(slider, 'setPointerCapture', { value: setPointerCapture, configurable: true })
+    fireEvent.pointerDown(slider, { pointerId: 7 })
+    expect(setPointerCapture).toHaveBeenCalledWith(7)
+  })
 })

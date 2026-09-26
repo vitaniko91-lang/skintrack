@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 
 /** Кнопки телефона: 56 px в высоту — палец в перчатке, не курсор. */
 const BASE = 'inline-flex h-14 w-full items-center justify-center gap-2 rounded-full px-6 text-base font-semibold transition-[scale,background-color,box-shadow] duration-200 active:scale-[0.97] disabled:opacity-60'
@@ -8,14 +8,17 @@ export function PrimaryButton({
   onClick,
   disabled,
   ariaDisabled,
+  buttonRef,
 }: {
   children: ReactNode
   onClick?: () => void
   disabled?: boolean
   ariaDisabled?: boolean
+  buttonRef?: Ref<HTMLButtonElement>
 }) {
   return (
     <button
+      ref={buttonRef}
       type="button"
       onClick={() => { if (!ariaDisabled) onClick?.() }}
       disabled={disabled}

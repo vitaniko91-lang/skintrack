@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch } from 'react'
+import { useEffect, useRef, useState, type Dispatch } from 'react'
 import type { ProtoEvent, ProtoState } from './machine'
 import { checkItems, checkPasses, type Conditions } from './conditions'
 import { PrimaryButton, ScreenShell } from './parts'
@@ -13,9 +13,16 @@ export function GroupScreen({ state, dispatch, conditions, reduced }: Props) {
   const items = checkItems(conditions)
   const [shown, setShown] = useState(0)
   const { groupOk, signal } = conditions
+  const btnRef = useRef<HTMLButtonElement>(null)
+  // Earned focus only: the slide-to-confirm that replaces this button should steal focus
+  // only from the person who was actually on the button when the check ran — not from a
+  // mouse/touch user who has since scrolled away, and not on a re-render of an
+  // already-passed state (e.g. jumping back here via the Stepper).
+  const btnHadFocus = useRef(false)
 
   useEffect(() => {
     if (state.check !== 'running') return
+    btnHadFocus.current = document.activeElement === btnRef.current
     // Depend on the two fields the check result actually reads, not the whole conditions
     // object — a battery tick shouldn't restart the check's reveal timers mid-run.
     const runConditions: Conditions = { groupOk, signal, battery: 0 }
@@ -72,11 +79,17 @@ export function GroupScreen({ state, dispatch, conditions, reduced }: Props) {
           // One button element across idle/running/failed — only its label and aria-disabled
           // change, so a keyboard user's focus stays put instead of dropping to body when the
           // state (and previously, the JSX slot) changed underneath them.
-          <PrimaryButton onClick={startCheck} ariaDisabled={state.check === 'running'}>
+          <PrimaryButton onClick={startCheck} ariaDisabled={state.check === 'running'} buttonRef={btnRef}>
             {state.check === 'failed' ? 'Re-check' : state.check === 'running' ? 'Checking…' : 'Run group check'}
           </PrimaryButton>
         )}
-        {state.check === 'passed' && <SlideToConfirm label="Slide to start tour" onConfirm={() => dispatch({ type: 'startTour' })} />}
+        {state.check === 'passed' && (
+          <SlideToConfirm
+            label="Slide to start tour"
+            onConfirm={() => dispatch({ type: 'startTour' })}
+            autoFocus={btnHadFocus.current}
+          />
+        )}
       </div>
     </ScreenShell>
   )

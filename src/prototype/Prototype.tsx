@@ -37,7 +37,10 @@ export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'ro
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,32rem)_1fr] lg:items-center lg:gap-16">
       <Stepper current={state.screen} onGo={(id) => dispatch({ type: 'go', screen: id })} />
-      <div className="lg:justify-self-center">
+      {/* TryIt's section padding (px-4 below md) would otherwise leave a 16px border around
+          the phone on mobile — bleed the wrapper to the viewport edge there, and let md:px-10
+          take back over once the phone stops being full-bleed. */}
+      <div className="-mx-4 md:mx-0 lg:justify-self-center">
         <PhoneFrame conditions={conditions}>
           <div
             key={state.screen}

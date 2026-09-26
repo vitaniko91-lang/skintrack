@@ -1,10 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 
 /**
  * «Свайп-действие» из референса, собранное на нативном range: работает мышью, пальцем
  * и клавиатурой (стрелки, End) без собственной обработки жестов.
  */
-export function SlideToConfirm({ label, onConfirm }: { label: string; onConfirm: () => void }) {
+export function SlideToConfirm({
+  label,
+  onConfirm,
+  autoFocus = false,
+}: {
+  label: string
+  onConfirm: () => void
+  autoFocus?: boolean
+}) {
   const [value, setValue] = useState(0)
   const done = useRef(false)
   const dragging = useRef(false)
@@ -12,11 +20,13 @@ export function SlideToConfirm({ label, onConfirm }: { label: string; onConfirm:
   const tapJump = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // This control replaces the check button in the same slot once the check passes —
-  // move focus onto it so a keyboard user isn't dropped back to the body.
+  // This control replaces the check button in the same slot once the check passes. Only
+  // move focus onto it when the caller says the button that triggered the check actually
+  // had focus — otherwise a mouse/touch user who scrolled away gets yanked back, and
+  // `preventScroll` keeps even an earned focus from re-scrolling the page.
   useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+    if (autoFocus) inputRef.current?.focus({ preventScroll: true })
+  }, [autoFocus])
 
   const onChange = (v: number) => {
     // A tap on the track sets a native range straight to a high value on pointerdown,
@@ -31,10 +41,11 @@ export function SlideToConfirm({ label, onConfirm }: { label: string; onConfirm:
       onConfirm()
     }
   }
-  const startDrag = () => {
+  const startDrag = (e: ReactPointerEvent<HTMLInputElement>) => {
     dragging.current = true
     moved.current = false
     tapJump.current = false
+    e.currentTarget.setPointerCapture?.(e.pointerId)
   }
   const onMove = () => { if (dragging.current) moved.current = true }
   const release = () => {
@@ -61,6 +72,7 @@ export function SlideToConfirm({ label, onConfirm }: { label: string; onConfirm:
         onPointerDown={startDrag}
         onPointerMove={onMove}
         onPointerUp={release}
+        onPointerCancel={release}
         onBlur={release}
         className="relative h-full w-full cursor-grab appearance-none bg-transparent active:cursor-grabbing
           [&::-webkit-slider-thumb]:size-12 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent
