@@ -86,7 +86,13 @@ export function GroupScreen({ state, dispatch, conditions, reduced }: Props) {
         {state.check === 'passed' && (
           <SlideToConfirm
             label="Slide to start tour"
-            onConfirm={() => dispatch({ type: 'startTour' })}
+            onConfirm={() => {
+              // Вибрация — здесь, в момент настоящего старта тура, а не в эффекте монтирования
+              // WarningScreen: иначе застывшая иллюстрация на странице кейса или переход на
+              // экран через степпер вибрировали бы тоже.
+              if (!reduced) navigator.vibrate?.([180, 90, 180])
+              dispatch({ type: 'startTour' })
+            }}
             autoFocus={btnHadFocus.current}
           />
         )}

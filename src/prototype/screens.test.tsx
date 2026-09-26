@@ -1,15 +1,27 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { useReducer } from 'react'
-import { initialState, reducer, type ScreenId } from './machine'
+import { useReducer, type Dispatch } from 'react'
+import { initialState, reducer, type ProtoEvent, type ScreenId } from './machine'
 import { DEFAULT_CONDITIONS, type Conditions } from './conditions'
 import { GroupScreen, CHECK_STEP_MS } from './GroupScreen'
 import { WarningScreen } from './WarningScreen'
 
-function Harness({ start, conditions = DEFAULT_CONDITIONS, reduced = false }: { start: ScreenId; conditions?: Conditions; reduced?: boolean }) {
+function Harness({
+  start,
+  conditions = DEFAULT_CONDITIONS,
+  reduced = false,
+  dispatchRef,
+}: {
+  start: ScreenId
+  conditions?: Conditions
+  reduced?: boolean
+  /** Exposes the reducer's dispatch to the test, so it can navigate like the Stepper would. */
+  dispatchRef?: { current: Dispatch<ProtoEvent> | null }
+}) {
   const [state, dispatch] = useReducer(reducer, start, initialState)
-  return state.screen === 'group'
-    ? <GroupScreen state={state} dispatch={dispatch} conditions={conditions} reduced={reduced} />
-    : <WarningScreen state={state} dispatch={dispatch} reduced={reduced} slopeDeg={38} />
+  if (dispatchRef) dispatchRef.current = dispatch
+  if (state.screen === 'group') return <GroupScreen state={state} dispatch={dispatch} conditions={conditions} reduced={reduced} />
+  if (state.screen === 'warning') return <WarningScreen state={state} dispatch={dispatch} reduced={reduced} slopeDeg={38} />
+  return <p>on {state.screen}</p>
 }
 
 describe('GroupScreen', () => {
@@ -69,14 +81,16 @@ describe('WarningScreen', () => {
   beforeEach(() => vi.useFakeTimers())
   afterEach(() => vi.useRealTimers())
 
-  it('vibrates when the tour starts, not when the screen is merely shown', () => {
+  it('does not vibrate when the warning screen is merely shown (e.g. reached directly via the stepper)', () => {
     const vibrate = vi.fn()
     Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
-
-    const { unmount } = render(<Harness start="warning" />)
+    render(<Harness start="warning" />)
     expect(vibrate).not.toHaveBeenCalled()
-    unmount()
+  })
 
+  it('vibrates on slide-to-start when not reduced', () => {
+    const vibrate = vi.fn()
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
     render(<Harness start="group" reduced={false} />)
     fireEvent.click(screen.getByRole('button', { name: 'Run group check' }))
     act(() => { vi.advanceTimersByTime(CHECK_STEP_MS * 5) })
@@ -91,6 +105,22 @@ describe('WarningScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Run group check' }))
     fireEvent.change(screen.getByRole('slider'), { target: { value: '100' } })
     expect(vibrate).not.toHaveBeenCalled()
+  })
+
+  it('vibrates exactly once for a start, even after navigating away from and back to the warning screen', () => {
+    const vibrate = vi.fn()
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
+    const dispatchRef: { current: Dispatch<ProtoEvent> | null } = { current: null }
+    render(<Harness start="group" reduced={false} dispatchRef={dispatchRef} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Run group check' }))
+    act(() => { vi.advanceTimersByTime(CHECK_STEP_MS * 5) })
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '100' } })
+    expect(vibrate).toHaveBeenCalledTimes(1)
+
+    // Jump away (as the Stepper would) and back to the warning screen — no second vibration.
+    act(() => { dispatchRef.current!({ type: 'go', screen: 'route' }) })
+    act(() => { dispatchRef.current!({ type: 'go', screen: 'warning' }) })
+    expect(vibrate).toHaveBeenCalledTimes(1)
   })
 
   it('states slope, danger and distance in words, then acknowledges once', () => {

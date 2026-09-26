@@ -39,7 +39,7 @@ export const SOURCES: Source[] = [
 export interface Stat { value: string; label: string; sourceId: string }
 
 export const STATS: Stat[] = [
-  { value: '~80%', label: 'of Swiss avalanche deaths happen at danger level 2 or 3 — about 30% and 50%.', sourceId: 'slf-levels' },
+  { value: '~80%', label: 'of avalanche fatalities in SLF’s data happen at danger level 2 or 3 — about 30% and 50%.', sourceId: 'slf-levels' },
   { value: '~80%', label: 'of the winter, level 2 or 3 is the forecast. The deadly days are the ordinary ones.', sourceId: 'slf-levels' },
   { value: '96%', label: 'of avalanches in a Swiss dataset of 1,000+ released between 30° and 50°; most between 34° and 45°.', sourceId: 'aa-slope' },
 ]
@@ -115,7 +115,7 @@ export const DECISIONS: Decision[] = [
     context: 'On the skin track your hands are in gloves, the phone is in a chest pocket and the screen fights snow glare. An app that pings at every threshold teaches people to ignore it.',
     options: [
       { id: 'every-threshold', name: 'Alert at every threshold', ux: '✓ nothing is missed · ✗ dozens of pings per tour — alarm fatigue', cost: 'Low', risk: 'People mute the app, and the alert that matters is ignored.' },
-      { id: 'level-3-plus', name: 'Alert only at danger 3+', ux: '✓ rare, so trusted · ✗ silent at level 2, where about 30% of Swiss avalanche deaths happen', cost: 'Low', risk: 'A false sense of safety on “moderate” days.', sourceId: 'slf-levels' },
+      { id: 'level-3-plus', name: 'Alert only at danger 3+', ux: '✓ rare, so trusted · ✗ silent at level 2, where about 30% of avalanche fatalities happen (SLF)', cost: 'Low', risk: 'A false sense of safety on “moderate” days.', sourceId: 'slf-levels' },
       { id: 'per-section', name: 'One alert per slope section', ux: '✓ one strong signal per decision point: slope, danger and distance together, vibration and type readable in gloves · ✗ depends on cutting the route into good sections', cost: 'Medium', risk: 'Badly cut sections merge two hazards or split one.' },
     ],
     chosen: 'per-section',

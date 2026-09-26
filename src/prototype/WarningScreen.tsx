@@ -1,4 +1,4 @@
-import { useEffect, type Dispatch } from 'react'
+import type { Dispatch } from 'react'
 import type { ProtoEvent, ProtoState } from './machine'
 import { PrimaryButton, SecondaryButton } from './parts'
 
@@ -7,15 +7,11 @@ interface Props { state: ProtoState; dispatch: Dispatch<ProtoEvent>; reduced: bo
 /**
  * Одно предупреждение на участок: крупно, словами, с вибрацией — читается в перчатках
  * и на ярком снегу. После подтверждения следующее будет только на следующем склоне.
+ * Сама вибрация — не здесь: она срабатывает в момент настоящего старта тура
+ * (GroupScreen, slide-to-confirm), а не при показе этого экрана — иначе застывшая
+ * иллюстрация на странице кейса или переход сюда через степпер вибрировали бы тоже.
  */
-export function WarningScreen({ state, dispatch, reduced, slopeDeg }: Props) {
-  useEffect(() => {
-    // Вибрирует только настоящий старт тура, а не показ экрана: на странице кейса этот
-    // экран стоит застывшей иллюстрацией, и через степпер на него тоже можно перейти.
-    if (state.started && !reduced && !state.acknowledged) navigator.vibrate?.([180, 90, 180])
-    // только при появлении экрана
-  }, [])
-
+export function WarningScreen({ state, dispatch, slopeDeg }: Props) {
   if (state.acknowledged) {
     return (
       <div className="flex flex-1 flex-col justify-between p-6">

@@ -31,7 +31,16 @@ interface Props {
 
 export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'route', initial, variant = 'app', label }: Props) {
   const [reduced] = useState(prefersReducedMotion)
-  const [state, dispatch] = useReducer(reducer, undefined, () => ({ ...initialState(initial?.screen ?? initialScreen), ...initial }))
+  const [state, dispatch] = useReducer(reducer, undefined, () => {
+    const base = initialState(initial?.screen ?? initialScreen)
+    // An explicitly-undefined key in `initial` (e.g. `{ check: undefined }`) must not win over
+    // the reducer default when spread — a case-page illustration passing a partial state
+    // shouldn't be able to blank out fields it never meant to set.
+    const defined = initial
+      ? (Object.fromEntries(Object.entries(initial).filter(([, v]) => v !== undefined)) as Partial<ProtoState>)
+      : {}
+    return { ...base, ...defined }
+  })
   const stats = useRouteStats()
   const rows = stats ? formatRouteStats(stats) : EMPTY_STATS
   const slopeDeg = stats ? Math.round(stats.maxSlopeDeg) : MEASURED_MAX_SLOPE
@@ -56,7 +65,7 @@ export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'ro
 
   if (variant === 'figure') {
     return (
-      <figure aria-label={label} className="flex flex-col items-center gap-4">
+      <figure aria-label={label} className="flex w-full flex-col items-center gap-4">
         {phone}
         {label && <figcaption className="font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted">{label}</figcaption>}
       </figure>

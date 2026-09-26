@@ -9,11 +9,11 @@ import { SourceRef } from './SourceRef'
 export function TradeoffTable({ decision }: { decision: Decision }) {
   const captionId = `${decision.id}-caption`
   return (
-    <div role="region" aria-labelledby={captionId} tabIndex={0} className="overflow-x-auto rounded-[var(--radius-card)] ring-1 ring-line">
+    <div role="region" aria-label={`${decision.title} — options`} tabIndex={0} className="overflow-x-auto rounded-[var(--radius-card)] ring-1 ring-line">
       <table className="w-full min-w-[44rem] border-collapse text-left text-sm">
         <caption id={captionId} className="sr-only">{decision.title}</caption>
         <thead>
-          <tr className="font-mono text-[0.625rem] uppercase tracking-[0.14em] text-muted">
+          <tr className="font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted">
             {['Option', 'UX', 'Dev cost', 'Risk'].map((h) => (
               <th key={h} scope="col" className="px-5 py-4 font-normal">{h}</th>
             ))}

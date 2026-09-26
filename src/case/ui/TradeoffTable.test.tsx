@@ -27,7 +27,7 @@ describe('TradeoffTable', () => {
   })
   it('is scrollable by keyboard on narrow screens', () => {
     render(<TradeoffTable decision={d} />)
-    const region = screen.getByRole('region', { name: d.title })
+    const region = screen.getByRole('region', { name: `${d.title} — options` })
     expect(region).toHaveAttribute('tabindex', '0')
   })
 })

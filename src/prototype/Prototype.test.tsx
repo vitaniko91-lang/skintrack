@@ -52,6 +52,15 @@ describe('Prototype', () => {
     expect(screen.getByRole('figure', { name: 'Slope layer on' })).toBeInTheDocument()
   })
 
+  it('ignores an explicitly-undefined key in `initial`, keeping the reducer default', () => {
+    // Without filtering, `{ ...initialState('group'), ...{ screen: 'group', check: undefined } }`
+    // would overwrite the default `check: 'idle'` with `undefined`, which falls through
+    // GroupScreen's `visible` ternary to "fully revealed" — items would show their real
+    // detail text on mount instead of the idle '—' placeholder.
+    render(<Prototype variant="figure" initial={{ screen: 'group', check: undefined }} label="x" />)
+    expect(screen.queryByText('3 of 3 sending')).toBeNull()
+  })
+
   it('figure variant can start in a failed group check', () => {
     render(
       <Prototype
