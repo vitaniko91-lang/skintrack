@@ -8,6 +8,8 @@ export function SlideToConfirm({ label, onConfirm }: { label: string; onConfirm:
   const [value, setValue] = useState(0)
   const done = useRef(false)
   const dragging = useRef(false)
+  const moved = useRef(false)
+  const tapJump = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // This control replaces the check button in the same slot once the check passes —
@@ -17,19 +19,27 @@ export function SlideToConfirm({ label, onConfirm }: { label: string; onConfirm:
   }, [])
 
   const onChange = (v: number) => {
-    // A tap near the end sets a native range straight to a high value in a single event,
-    // defeating the slide. Mid-drag, reject a jump bigger than a real drag step would
-    // produce. Keyboard (arrows/End) never sets `dragging`, so it stays unaffected.
-    if (dragging.current && v - value > 20) return
+    // A tap on the track sets a native range straight to a high value on pointerdown,
+    // before any pointer movement — that jump defeats the slide, so the whole gesture is
+    // ignored. Once the pointer has moved it is a real drag, and a quick drag legitimately
+    // arrives in steps bigger than 20. Keyboard (arrows/End) never sets `dragging`.
+    if (dragging.current && !moved.current && v - value > 20) tapJump.current = true
+    if (tapJump.current) return
     setValue(v)
     if (v >= 100 && !done.current) {
       done.current = true
       onConfirm()
     }
   }
-  const startDrag = () => { dragging.current = true }
+  const startDrag = () => {
+    dragging.current = true
+    moved.current = false
+    tapJump.current = false
+  }
+  const onMove = () => { if (dragging.current) moved.current = true }
   const release = () => {
     dragging.current = false
+    tapJump.current = false
     if (!done.current) setValue(0)
   }
 
@@ -49,6 +59,7 @@ export function SlideToConfirm({ label, onConfirm }: { label: string; onConfirm:
         aria-label={label}
         onChange={(e) => onChange(Number(e.target.value))}
         onPointerDown={startDrag}
+        onPointerMove={onMove}
         onPointerUp={release}
         onBlur={release}
         className="relative h-full w-full cursor-grab appearance-none bg-transparent active:cursor-grabbing

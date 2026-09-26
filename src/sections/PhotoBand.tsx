@@ -1,6 +1,8 @@
 import { PHOTO } from '../content/photo'
 
-const SIZES = '(min-width: 768px) calc(100vw - 5rem), calc(100vw - 2rem)'
+// object-cover at h-[min(80vh,56rem)]: on portrait screens the 3:2 frame is cropped by height, so
+// the rendered image is 1.5 × that height wide — far wider than the box. Ask for that width.
+const SIZES = '(min-width: 768px) max(calc(100vw - 5rem), min(120vh, 84rem)), max(calc(100vw - 2rem), 120vh)'
 const srcSet = (ext: 'avif' | 'webp') =>
   PHOTO.widths.map((w) => `./photo/${PHOTO.name}-${w}.${ext} ${w}w`).join(', ')
 

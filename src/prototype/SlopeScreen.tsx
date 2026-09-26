@@ -23,7 +23,7 @@ export function SlopeScreen({ state, dispatch, reduced }: Props) {
         >
           Slope layer
           <span aria-hidden className={`relative h-7 w-12 rounded-full ${reduced ? '' : 'transition-colors duration-200'} ${on ? 'bg-accent' : 'bg-ground-2'}`}>
-            <span className={`absolute top-1 size-5 rounded-full bg-body ${reduced ? '' : 'transition-[translate] duration-200'} ${on ? 'translate-x-6' : 'translate-x-1'}`} />
+            <span className={`absolute left-0 top-1 size-5 rounded-full bg-body ${reduced ? '' : 'transition-[translate] duration-200'} ${on ? 'translate-x-6' : 'translate-x-1'}`} />
           </span>
         </button>
         {on && (

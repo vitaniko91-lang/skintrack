@@ -37,6 +37,17 @@ describe('SlideToConfirm', () => {
     }
     expect(onConfirm).toHaveBeenCalledTimes(1)
   })
+  it('confirms a quick real drag — pointer moves in steps bigger than 20', () => {
+    const onConfirm = vi.fn()
+    render(<SlideToConfirm label="Slide" onConfirm={onConfirm} />)
+    const slider = screen.getByRole('slider', { name: 'Slide' })
+    fireEvent.pointerDown(slider)
+    for (const v of [22, 44, 66, 89, 100]) {
+      fireEvent.pointerMove(slider)
+      fireEvent.change(slider, { target: { value: String(v) } })
+    }
+    expect(onConfirm).toHaveBeenCalledTimes(1)
+  })
   it('a jump bigger than 20 via keyboard (no pointer gesture) still confirms', () => {
     const onConfirm = vi.fn()
     render(<SlideToConfirm label="Slide" onConfirm={onConfirm} />)

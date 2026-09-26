@@ -2,7 +2,7 @@ const LINK = 'inline-flex h-14 items-center gap-2 rounded-full px-7 text-base fo
 
 export function Finale() {
   return (
-    <section aria-labelledby="finale-title" className="relative overflow-hidden px-4 pt-32 md:px-10 md:pt-48">
+    <section aria-labelledby="finale-title" className="@container relative overflow-hidden px-4 pt-32 md:px-10 md:pt-48">
       <div className="relative z-10 max-w-3xl">
         <h2
           id="finale-title"
@@ -18,10 +18,11 @@ export function Finale() {
           </a>
         </div>
       </div>
+      {/* 5.5 ≈ the word's advance width in ems at wdth 125 (measured 5.40) — the mark spans ~98% of the section. */}
       <p
         data-watermark
         aria-hidden="true"
-        className="pointer-events-none mt-24 select-none whitespace-nowrap text-[clamp(4rem,15vw,18rem)] font-extrabold lowercase leading-[0.78] tracking-[-0.04em] text-accent/[0.07]"
+        className="pointer-events-none mt-24 select-none whitespace-nowrap text-[calc(100cqw/5.5)] font-extrabold lowercase leading-[0.78] tracking-[-0.04em] text-accent/[0.07]"
         style={{ fontStretch: '125%' }}
       >
         skintrack
