@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/jetbrains-mono";
+
+@theme {
+  --color-ground: #0a0f15;
+  --color-ground-1: #131c25;
+  --color-ground-2: #1c2833;
+  --color-accent: #bfe0ee;
+  --color-body: #eaf2f6;
+  --color-muted: #a9bac4;
+  --color-line: rgb(191 224 238 / 0.12);
+
+  --color-slope-30: #f4d35e;
+  --color-slope-35: #f08a24;
+  --color-slope-40: #d7263d;
+  --color-slope-45: #7b4fa3;
+
+  --font-sans: "Archivo Variable", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  --radius-card: 28px;
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+html { background: var(--color-ground); color: var(--color-body); }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
