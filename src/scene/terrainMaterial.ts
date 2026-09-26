@@ -49,10 +49,10 @@ const fragment = /* glsl */ `
   varying vec3 vNormal;
 
   const float INTERVAL = 1.0 / 32.0; // ≈ 70 м по вертикали на этой горе
-  // Коридор маршрута: ±500 м (≈ 500 / 6786 в UV), мягкий край ≈ 200 м.
-  const float CORRIDOR = 0.074;
-  const float CORRIDOR_SOFT = 0.03;
-  const float TINT = 0.18;   // вся гора — тихая тонировка
+  // Коридор маршрута: ±270 м (≈ 270 / 6786 в UV), мягкий край ≈ 170 м.
+  const float CORRIDOR = 0.04;
+  const float CORRIDOR_SOFT = 0.025;
+  const float TINT = 0.10;   // вся гора — тихая тонировка
   const float FOCUS = 0.55;  // в коридоре — крутизна вдоль твоего пути
 
   void main() {
@@ -69,7 +69,9 @@ const fragment = /* glsl */ `
     band = mix(band, uBand4, smoothstep(44.5, 45.5, vSlope));
     float sweep = 1.0 - smoothstep(uSlope * 1.2 - 0.12, uSlope * 1.2, vX);
     float corridor = 1.0 - smoothstep(CORRIDOR, CORRIDOR + CORRIDOR_SOFT, vRouteDist);
-    color = mix(color, band, bandMask * sweep * mix(TINT, FOCUS, corridor));
+    // ≥45° — скала, не лыжный рельеф: вдвое тише везде, включая коридор.
+    float rock = mix(1.0, 0.5, smoothstep(44.5, 45.5, vSlope));
+    color = mix(color, band, bandMask * sweep * mix(TINT, FOCUS, corridor) * rock);
 
     // Изолинии поверх крутизны: толщина в пикселях через fwidth, появляются снизу вверх.
     float f = vH / INTERVAL;
