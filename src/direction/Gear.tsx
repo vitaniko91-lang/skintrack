@@ -11,7 +11,9 @@ const ITEMS = [
   { src: './gear/gear-3.webp', key: 'beanie', label: 'Beanie', alt: 'A ribbed knit beanie with a woven skintrack patch on the cuff, against snowy branches.', cls: 'col-span-4', pos: 'object-[50%_50%]', depth: 0.9 },
 ] as const
 
-const STROKES: [number, string][] = [[16, 'rgba(92,232,255,0.3)'], [4, '#E8FDFF']]
+/** Три слоя, как у ленты манифеста: широкий ореол, свечение, светлое ядро. Ореол шире щели —
+ * заходит на кромку карточек на 3 px, до содержимого фото не достаёт. */
+const STROKES: [number, string][] = [[30, 'rgba(92,232,255,0.16)'], [14, 'rgba(92,232,255,0.42)'], [5, '#E8FDFF']]
 
 /**
  * Глава 05 · Gear (RideOn, борды брендинга): карточки-фото разного размера со скруглением 40,
@@ -25,7 +27,8 @@ export function Gear({ reduced = false }: { reduced?: boolean }) {
 
   useEffect(() => {
     const root = svg.current!
-    const [glow, core] = Array.from(root.querySelectorAll('path'))
+    const paths = Array.from(root.querySelectorAll('path'))
+    const core = paths[paths.length - 1]
     const cards = Array.from(grid.current!.querySelectorAll<HTMLElement>('[data-card]'))
     let L = 1, want = 0, last = -1, wide = innerWidth >= 768
 
@@ -41,7 +44,7 @@ export function Gear({ reduced = false }: { reduced?: boolean }) {
       const x1 = Math.max(r[1].x, r[3].x) + 40
       root.style.left = `${x0}px`; root.style.width = `${x1 - x0}px`
       root.setAttribute('viewBox', `${x0.toFixed(0)} 0 ${(x1 - x0).toFixed(0)} ${s.height.toFixed(0)}`)
-      for (const p of [glow, core]) p.setAttribute('d', d)
+      for (const p of paths) p.setAttribute('d', d)
       L = core.getTotalLength()
       last = -1
       draw(want)
@@ -50,11 +53,7 @@ export function Gear({ reduced = false }: { reduced?: boolean }) {
       want = k
       if (!wide || Math.abs(k - last) < 0.0005) return
       last = k
-      STROKES.forEach(([w], i) => {
-        const p = [glow, core][i]
-        p.setAttribute('stroke-width', String(w))
-        p.style.strokeDasharray = `${k * L} ${L * 2}`
-      })
+      for (const p of paths) p.style.strokeDasharray = `${k * L} ${L * 2}`
     }
 
     if (reduced) {
@@ -123,7 +122,7 @@ export function Gear({ reduced = false }: { reduced?: boolean }) {
         </p>
       </div>
 
-      <svg ref={svg} aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-0 h-full w-full overflow-visible">
+      <svg ref={svg} aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-[2] h-full w-full overflow-visible">
         {STROKES.map(([w, c], i) => <path key={i} fill="none" stroke={c} strokeWidth={w} strokeLinecap="round" style={{ strokeDasharray: '0 1e5' }} />)}
       </svg>
 
