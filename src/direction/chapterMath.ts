@@ -126,7 +126,8 @@ export function gearRibbonPath(r: readonly Box[], w: number, h: number): string 
   const x1 = (helmet.x + helmet.w + watch.x) / 2
   const gy = (watch.y + watch.h + bottle.y) / 2
   const x2 = (bottle.x + bottle.w + beanie.x) / 2
-  const turn = Math.min(90, (x2 - x1) / 2.5)
+  // поворот концентричен скруглению карточек (40) плюс полщели — лента огибает угол, а не режет его
+  const turn = Math.min(52, (x2 - x1) / 2.5)
   const f = (n: number) => n.toFixed(1)
   void w
   return [

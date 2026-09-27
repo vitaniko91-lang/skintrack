@@ -36,8 +36,11 @@ export function Gear({ reduced = false }: { reduced?: boolean }) {
       wide = innerWidth >= 768
       root.style.display = wide ? '' : 'none'
       if (!wide) return
-      const s = section.current!.getBoundingClientRect()
-      const r = cards.map((c) => { const b = c.parentElement!.getBoundingClientRect(); return { x: b.left - s.left, y: b.top - s.top, w: b.width, h: b.height } })
+      const s = { width: section.current!.clientWidth, height: section.current!.clientHeight }
+      // раскладка без transform: при refresh карточки ещё сдвинуты входной анимацией (y 120, scale 0.94),
+      // и getBoundingClientRect уводил ленту на карточки
+      const ul = grid.current!
+      const r = cards.map((c) => { const li = c.parentElement!; return { x: ul.offsetLeft + li.offsetLeft, y: ul.offsetTop + li.offsetTop, w: li.offsetWidth, h: li.offsetHeight } })
       const d = gearRibbonPath(r, s.width, s.height)
       // слой ленты — только по её габариту: перерисовка штриха на всю ширину доски стоила кадров
       const x0 = Math.min(r[0].x + r[0].w, r[2].x + r[2].w) - 40
