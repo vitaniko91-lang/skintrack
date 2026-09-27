@@ -64,3 +64,11 @@ describe('distanceToPolyline', () => {
     expect(distanceToPolyline(-0.3, -0.4, pts)).toBeCloseTo(0.5, 6)
   })
 })
+
+describe('WAYPOINTS', () => {
+  it('does not name the start after a place the DEM contradicts', () => {
+    // DEM даёт старту 2,402 m, Шварцзее лежит на ~2,550 m — имя не подтверждено
+    expect(WAYPOINTS[0].name).toBe('Start')
+    expect(WAYPOINTS.map((w) => w.name).join()).not.toMatch(/Schwarzsee/)
+  })
+})

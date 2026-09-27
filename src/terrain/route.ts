@@ -17,7 +17,7 @@ export const ROUTE_UV: readonly UV[] = [
 ]
 
 export const WAYPOINTS = [
-  { index: 0, name: 'Start · Schwarzsee', kind: 'start' },
+  { index: 0, name: 'Start', kind: 'start' },
   { index: 4, name: 'Couloir Nord', kind: 'hazard' },
   { index: 7, name: 'Shoulder', kind: 'summit' },
 ] as const

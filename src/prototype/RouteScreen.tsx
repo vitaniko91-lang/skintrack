@@ -17,7 +17,7 @@ export function RouteScreen({ state, dispatch, stats, reduced }: Props) {
         <RouteMap drawn={state.routeBuilt} slopeOn={false} reduced={reduced} />
       </div>
       <div className="space-y-4 p-4">
-        <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">Schwarzsee → Shoulder</p>
+        <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">Start → Shoulder</p>
         {state.routeBuilt ? (
           <>
             <StatRow stats={stats} />

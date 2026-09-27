@@ -115,12 +115,12 @@ const StartCard = forwardRef<HTMLDivElement, CardProps>(function StartCard({ ele
   return (
     <div ref={ref} data-card className={`${glass} w-[248px] border-white/12 p-5 max-md:w-[176px] max-md:p-3.5`}>
       <div className="flex items-center justify-between">
-        <p className={kicker}>Start · 06:40</p>
+        <p className={kicker}>Trailhead · NE face</p>
         <span className="icon-[lucide--flag] size-4 text-cyan" aria-hidden />
       </div>
-      <h3 className="mt-1.5 text-[24px] font-semibold leading-tight tracking-[-0.02em] max-md:text-[18px]">Schwarzsee</h3>
+      <h3 className="mt-1.5 text-[24px] font-semibold leading-tight tracking-[-0.02em] max-md:text-[18px]">Start · <span className="tabular-nums">{elev(0)}</span></h3>
       <dl className="mt-3 flex gap-6 max-md:hidden">
-        <Stat label="Elevation" value={elev(0)} />
+        <Stat label="Depart" value="06:40" />
         <Stat label="Face" value="NE" />
       </dl>
     </div>

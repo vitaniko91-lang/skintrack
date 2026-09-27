@@ -14,7 +14,7 @@ export function RouteMap({ drawn, slopeOn, reduced }: Props) {
   return (
     <div
       role="img"
-      aria-label={`Map: ascent from Schwarzsee to the shoulder${slopeOn ? ', slope layer on' : ''}`}
+      aria-label={`Map: ascent from the start to the shoulder${slopeOn ? ', slope layer on' : ''}`}
       className="relative aspect-[3/4] max-h-full w-full overflow-hidden rounded-[var(--radius-card)] bg-ground-1"
     >
       <img src="./terrain/map-base.webp" alt="" className="absolute inset-0 size-full object-cover" />
