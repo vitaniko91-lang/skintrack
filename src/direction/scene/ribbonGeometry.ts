@@ -26,6 +26,10 @@ export interface Ribbon {
   routeEnd: number
   /** центральная линия — для «головы» ленты и тестов */
   centre: Vector3[]
+  /** UV каждой точки трека по склону (routeSamples + 1 штук) — по ним читается крутизна */
+  routeUV: [number, number][]
+  /** индекс точки центральной линии для вершины k маршрута (CatmullRom параметризован по вершинам) */
+  vertexSample: (k: number) => number
 }
 
 /**
@@ -43,8 +47,10 @@ export function buildRibbon(hf: Heightfield, route: readonly UV[], o: RibbonOpti
 
   const uvCurve = new CatmullRomCurve3(route.map(([u, v]) => new Vector3(u, 0, v)), false, 'centripetal')
   const centre: Vector3[] = []
+  const routeUV: [number, number][] = []
   for (let i = 0; i <= routeSamples; i++) {
     const p = uvCurve.getPoint(i / routeSamples)
+    routeUV.push([p.x, p.z])
     const [x, z] = uvToWorld(p.x, p.z)
     centre.push(new Vector3(x, surface(p.x, p.z) + lift, z))
   }
@@ -106,5 +112,6 @@ export function buildRibbon(hf: Heightfield, route: readonly UV[], o: RibbonOpti
   g.setAttribute('aT', new BufferAttribute(aT, 1))
   g.setAttribute('aSide', new BufferAttribute(aSide, 1))
   g.setIndex(index)
-  return { geometry: g, routeEnd, centre }
+  const vertexSample = (k: number) => Math.round((k / (route.length - 1)) * routeSamples)
+  return { geometry: g, routeEnd, centre, routeUV, vertexSample }
 }

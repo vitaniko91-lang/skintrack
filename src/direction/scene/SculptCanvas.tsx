@@ -8,33 +8,37 @@ import type { Heightfield } from '../../terrain/decode'
 import { Sculpture } from './Sculpture'
 import { Halo } from './Halo'
 import { Snow } from './Snow'
-import { stage, span, easeInOut } from '../stage'
+import { stage, span, easeInOut, livePose, type Pose } from '../stage'
 
 const tmp = new Vector3()
+/** Глава 02: насколько камера наезжает, опускается, сдвигает центр кадра к горе и поднимает взгляд. */
+const Q = { dist: 1, drop: 0.5, shift: 0.4, lift: 0.9 }
 const look = new Vector3()
 
 /** Камера с северо-востока (с этой стороны идёт трек), наезд по переходу + параллакс за курсором. */
-function Rig({ reduced, narrow }: { reduced: boolean; narrow: boolean }) {
+function Rig({ reduced, narrow, pose }: { reduced: boolean; narrow: boolean; pose?: Pose }) {
   const camera = useThree((s) => s.camera)
   useFrame(() => {
-    const p = reduced ? 1 : stage.p
+    const { p, q } = pose ?? (reduced ? { p: 1, q: 0 } : livePose())
     const k = easeInOut(span(p, 0, 0.85))
-    const dist = 23 - 4 * k + (narrow ? 9 : 0)
+    // глава 02: камера ниже и ближе, гора встаёт в центр — вокруг неё карточки маршрута
+    const k2 = easeInOut(span(q, 0, 0.5))
+    const dist = 23 - 4 * k - Q.dist * k2 + (narrow ? 9 : 0)
     const az = Math.PI * 0.25 + 0.15 - 0.2 * k
-    const h = 4 + 5 * k
+    const h = 4 + 5 * k - Q.drop * k2
     tmp.set(Math.sin(az) * dist, h, -Math.cos(az) * dist)
     if (!reduced) tmp.add(look.set(stage.px * 0.8, -stage.py * 0.5, 0))
-    camera.position.lerp(tmp, reduced ? 1 : 0.08)
+    camera.position.lerp(tmp, reduced || pose ? 1 : 0.08)
     // центр кадра сдвинут влево от горы: на десктопе гора стоит справа, слева — подпись главы
-    const shift = narrow ? 0 : 3.4
-    look.set(Math.cos(az) * shift, 1.6 + (narrow ? -0.4 : 0), Math.sin(az) * shift)
+    const shift = narrow ? 0 : 3.4 + (Q.shift - 3.4) * k2
+    look.set(Math.cos(az) * shift, 1.6 + (narrow ? -0.4 : 0) + Q.lift * k2, Math.sin(az) * shift)
     camera.lookAt(look)
   })
   return null
 }
 
 /** active=false — сцена целиком закрыта фото первого экрана: не рендерим впустую. */
-export default function SculptCanvas({ reduced, active = true }: { reduced: boolean; active?: boolean }) {
+export default function SculptCanvas({ reduced, active = true, pose, anchors = true }: { reduced: boolean; active?: boolean; pose?: Pose; anchors?: boolean }) {
   const [hf, setHf] = useState<Heightfield | null>(null)
   const narrow = typeof window !== 'undefined' && window.innerWidth < 768
   useEffect(() => { loadHeightfieldOnce().then(setHf).catch(() => {}) }, [])
@@ -58,10 +62,10 @@ export default function SculptCanvas({ reduced, active = true }: { reduced: bool
       </Environment>
       <directionalLight position={[-8, 6, 8]} intensity={3} color="#5CE8FF" />
       <directionalLight position={[6, 10, -4]} intensity={1.2} color="#ffffff" />
-      <Rig reduced={reduced} narrow={narrow} />
+      <Rig reduced={reduced} narrow={narrow} pose={pose} />
       <Halo reduced={reduced} />
       <Snow reduced={reduced} count={narrow ? 350 : 700} />
-      {hf && <Sculpture hf={hf} segments={17} reduced={reduced} />}
+      {hf && <Sculpture hf={hf} segments={17} reduced={reduced} pose={pose} anchors={anchors} />}
       <EffectComposer multisampling={0}>
         <Bloom mipmapBlur levels={6} resolutionScale={0.5} intensity={1.1} luminanceThreshold={0.78} luminanceSmoothing={0.15} radius={0.7} />
         <Vignette offset={0.25} darkness={0.7} />

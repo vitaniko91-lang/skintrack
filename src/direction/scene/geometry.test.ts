@@ -94,3 +94,14 @@ describe('faceted sculpt', () => {
     }
   })
 })
+
+describe('ribbon anchors', () => {
+  it('vertexSample lands within one sample of the route vertices', () => {
+    const r = buildRibbon(cone(), ROUTE_UV)
+    for (const k of [0, 4, ROUTE_UV.length - 1]) {
+      const [u, v] = r.routeUV[r.vertexSample(k)]
+      expect(u).toBeCloseTo(ROUTE_UV[k][0], 2)
+      expect(v).toBeCloseTo(ROUTE_UV[k][1], 2)
+    }
+  })
+})

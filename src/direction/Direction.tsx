@@ -9,6 +9,8 @@ import { SwipeCard } from './SwipeCard'
 import { ChapterLabel } from './ChapterLabel'
 import { stage } from './stage'
 import { TrackStroke } from './TrackStroke'
+import { RouteCards } from './RouteCards'
+import { Manifesto } from './Manifesto'
 
 gsap.registerPlugin(ScrollTrigger)
 const SculptCanvas = lazy(() => import('./scene/SculptCanvas'))
@@ -46,11 +48,28 @@ function NextChapter() {
   return (
     <section className="relative flex h-svh items-center bg-ground px-[5vw]">
       <p className="font-mono text-[12px] uppercase tracking-[0.22em] text-muted">
-        02 · <span className="font-serif text-2xl normal-case italic tracking-normal text-cyan">Plan</span> the ascent — next chapter (outside this prototype)
+        04 · <span className="font-serif text-2xl normal-case italic tracking-normal text-cyan">Try</span> it — next chapter (outside this prototype)
       </p>
     </section>
   )
 }
+
+/** Подпись главы 02 — та же система, что у 01. */
+const Chapter02 = ({ ref }: { ref?: React.Ref<HTMLDivElement> }) => (
+  <ChapterLabel
+    ref={ref}
+    id="chapter-02"
+    num="02"
+    accent="The"
+    caps="route"
+    className="left-[5vw] top-[13svh] w-[min(34vw,520px)] max-md:inset-x-4 max-md:top-[10svh] max-md:w-auto"
+    body={<span className="max-md:hidden">Three points decide the day: the start, the 38° couloir where the snowpack gets a vote, and the shoulder where you turn around.</span>}
+  ><></></ChapterLabel>
+)
+
+/** Длины закреплённых глав в высотах экрана. */
+const CH01 = 3.8
+const CH02 = 3
 
 /** Прототип направления: первый экран + закреплённый переход «фото → скульптура + лента». */
 export default function Direction() {
@@ -59,7 +78,7 @@ export default function Direction() {
 }
 
 function Static() {
-  useEffect(() => { stage.p = 1 }, [])
+  useEffect(() => { stage.p = 1; stage.q = 1 }, [])
   return (
     <main>
       <section className="relative h-svh min-h-[640px] overflow-hidden bg-ground">
@@ -75,6 +94,14 @@ function Static() {
         </div>
         <ChapterLabel />
       </section>
+      <section className="relative h-svh min-h-[640px] overflow-hidden bg-ground">
+        <div className="absolute inset-0" aria-hidden>
+          <Suspense fallback={null}><SculptCanvas reduced pose={{ p: 1, q: 1 }} /></Suspense>
+        </div>
+        <Chapter02 />
+        <RouteCards />
+      </section>
+      <Manifesto reduced />
       <NextChapter />
     </main>
   )
@@ -87,6 +114,8 @@ function Motion() {
   const logo = useRef<HTMLSpanElement>(null)
   const card = useRef<HTMLDivElement>(null)
   const chapter = useRef<HTMLDivElement>(null)
+  const chapter2 = useRef<HTMLDivElement>(null)
+  const stats = useRef<HTMLDListElement>(null)
   const lenis = useRef<Lenis | null>(null)
   const [active, setActive] = useState(false)
   const activeRef = useRef(false)
@@ -125,15 +154,21 @@ function Motion() {
         const w = word.current!.getBoundingClientRect(), g = logo.current!.getBoundingClientRect()
         return { x: g.left - w.left, y: g.top - w.top - g.height * 0.05, s: g.width / w.width }
       }
+      // сцена рендерится, только пока трек в кадре и фото героя её не закрывает
+      let inView = true
+      const sync = () => {
+        const on = stage.p > 0.002 && inView
+        if (on !== activeRef.current) { activeRef.current = on; setActive(on) }
+      }
+      ScrollTrigger.create({ trigger: track.current, start: 'top bottom', end: 'bottom top', onToggle: (self) => { inView = self.isActive; sync() } })
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: {
-          trigger: track.current, start: 'top top', end: 'bottom bottom', scrub: 0.8, invalidateOnRefresh: true,
+          trigger: track.current, start: 'top top', end: () => `+=${innerHeight * CH01}`, scrub: 0.8, invalidateOnRefresh: true,
         },
         onUpdate() {
           stage.p = tl.progress()
-          const on = stage.p > 0.002
-          if (on !== activeRef.current) { activeRef.current = on; setActive(on) }
+          sync()
         },
       })
       tl.to({}, { duration: 1 }, 0)
@@ -160,6 +195,27 @@ function Motion() {
       chapter.current!.querySelectorAll('[data-ch="body"], [data-ch="stats"]').forEach((el, i) => {
         tl.fromTo(el, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.1 }, 0.72 + i * 0.04)
       })
+
+      // ── Глава 02: гора поворачивается (stage.q → 3D), карточки маршрута держатся за точки ──
+      const c2 = chapter2.current!
+      const t2 = gsap.timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: track.current, start: () => `top+=${innerHeight * CH01} top`, end: () => `+=${innerHeight * CH02}`,
+          scrub: 0.8, invalidateOnRefresh: true,
+        },
+        onUpdate() { stage.q = t2.progress() },
+      })
+      t2.to({}, { duration: 1 }, 0)
+        .fromTo(chapter.current, { opacity: 1, x: 0 }, { opacity: 0, x: -80, duration: 0.12, ease: 'power2.in' }, 0.01)
+        .fromTo(c2.querySelector('[data-ch="num"]'), { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.1, ease: 'power3.out' }, 0.1)
+        .fromTo(c2.querySelector('[data-ch="kicker"]'), { opacity: 0 }, { opacity: 1, duration: 0.06 }, 0.13)
+        .fromTo(c2.querySelector('[data-ch="read"]'), { opacity: 0, x: -50, filter: 'blur(14px)' }, { opacity: 1, x: 0, filter: 'blur(0px)', duration: 0.12, ease: 'power3.out' }, 0.13)
+        .fromTo(c2.querySelector('[data-ch="body"]'), { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.1 }, 0.24)
+        .fromTo(stats.current, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.1, ease: 'power3.out' }, 0.66)
+      c2.querySelectorAll('[data-ch="caps"]').forEach((el, i) => {
+        t2.fromTo(el, { yPercent: 110 }, { yPercent: 0, duration: 0.08, ease: 'power3.out' }, 0.16 + i * 0.01)
+      })
     })
 
     return () => {
@@ -170,16 +226,18 @@ function Motion() {
     }
   }, [])
 
-  const start = () => lenis.current?.scrollTo(track.current!.offsetTop + (track.current!.offsetHeight - innerHeight) * 0.8, { duration: 2.4 })
+  const start = () => lenis.current?.scrollTo(track.current!.offsetTop + innerHeight * CH01 * 0.8, { duration: 2.4 })
 
   return (
     <main>
-      <div ref={track} className="relative h-[480vh]">
+      <div ref={track} className="relative h-[780vh]">
         <div className="sticky top-0 h-svh overflow-hidden bg-ground">
           <div className="absolute inset-0" aria-hidden>
             <Suspense fallback={null}><SculptCanvas reduced={false} active={active} /></Suspense>
           </div>
           <ChapterLabel ref={chapter} />
+          <Chapter02 ref={chapter2} />
+          <RouteCards statsRef={stats} />
           <HeroPhoto ref={photo} className="z-20 [clip-path:inset(0%_0%_0%_0%_round_0px)]" />
           <TrackStroke imgSelector="[data-photo-img]" />
           <Nav logoRef={logo} />
@@ -188,6 +246,7 @@ function Motion() {
           <SwipeCard ref={card} onStart={start} />
         </div>
       </div>
+      <Manifesto />
       <NextChapter />
     </main>
   )
