@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { Credits } from '../direction/Finale'
+import { Credits } from '../direction/Credits'
 import { Problem } from './sections/Problem'
 import { User } from './sections/User'
 import { Decisions } from './sections/Decisions'

@@ -12,7 +12,8 @@ import { TrackStroke } from './TrackStroke'
 import { RouteCards } from './RouteCards'
 import { Manifesto } from './Manifesto'
 import { TryIt } from './TryIt'
-import { Credits, Finale } from './Finale'
+import { Finale } from './Finale'
+import { Credits } from './Credits'
 import { Gear } from './Gear'
 
 gsap.registerPlugin(ScrollTrigger)

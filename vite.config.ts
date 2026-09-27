@@ -12,7 +12,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     rolldownOptions: {
-      input: { main: resolve(root, 'index.html'), case: resolve(root, 'case.html'), direction: resolve(root, 'direction.html') },
+      input: { main: resolve(root, 'index.html'), case: resolve(root, 'case.html') },
     },
   },
   test: { environment: 'jsdom', globals: true, setupFiles: ['./src/test-setup.ts'] },
