@@ -1,4 +1,4 @@
-import { useReducer, useState } from 'react'
+import { useReducer, useState, type ReactNode } from 'react'
 import { prefersReducedMotion } from '../lib/env'
 import { formatRouteStats, useRouteStats } from '../terrain/routeSummary'
 import { initialState, reducer, type ProtoState, type ScreenId } from './machine'
@@ -28,9 +28,11 @@ interface Props {
   variant?: PhoneVariant
   /** Подпись иллюстрации (обязательна по смыслу для variant="figure"). */
   label?: string
+  /** Обёртка вокруг телефона в variant="figure" — например, корпус Device на странице кейса. */
+  wrap?: (phone: ReactNode) => ReactNode
 }
 
-export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'route', initial, variant = 'app', label }: Props) {
+export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'route', initial, variant = 'app', label, wrap }: Props) {
   const [reduced] = useState(prefersReducedMotion)
   const [state, dispatch] = useReducer(reducer, undefined, () => {
     const base = initialState(initial?.screen ?? initialScreen)
@@ -68,7 +70,7 @@ export function Prototype({ conditions = DEFAULT_CONDITIONS, initialScreen = 'ro
     return (
       <FigureContext value={true}>
         <figure aria-label={label} className="flex w-full flex-col items-center gap-4">
-          {phone}
+          {wrap ? wrap(phone) : phone}
           {label && <figcaption className="font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted">{label}</figcaption>}
         </figure>
       </FigureContext>

@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState, type Dispatch, type ReactNode } from 'react'
+import { useEffect, useReducer, useRef, useState, type Dispatch } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { formatRouteStats, useRouteStats } from '../terrain/routeSummary'
@@ -11,6 +11,7 @@ import { SlopeScreen } from '../prototype/SlopeScreen'
 import { GroupScreen } from '../prototype/GroupScreen'
 import { WarningScreen } from '../prototype/WarningScreen'
 import { ChapterLabel } from './ChapterLabel'
+import { Device } from './Device'
 import { approach, floatY, mixPose, poseEqual, poseTransform, ROW_POSE, screenRibbonPath, SLOT_POSE, slotOf, tryPhases, type Pose } from './chapterMath'
 import { stage } from './stage'
 
@@ -52,16 +53,6 @@ function ScreenOf({ st, dispatch, rows, slopeDeg, reduced }: {
     case 'group': return <GroupScreen state={st} dispatch={dispatch} conditions={DEFAULT_CONDITIONS} reduced={reduced} />
     case 'warning': return <WarningScreen state={st} dispatch={dispatch} reduced={reduced} slopeDeg={slopeDeg} />
   }
-}
-
-/** Корпус: графитовая рамка, «остров», блик по кромке. Экран — PhoneFrame прототипа. */
-function Device({ children, glow = false }: { children: ReactNode; glow?: boolean }) {
-  return (
-    <div className={`relative rounded-[52px] bg-[linear-gradient(150deg,#2a3a44,#0b141b_45%,#1a2730)] p-[11px] shadow-[inset_0_0_0_1px_rgb(255_255_255/0.14),inset_0_1px_0_rgb(255_255_255/0.3),0_50px_90px_-30px_rgb(0_0_0/0.9)] ${glow ? 'ring-1 ring-cyan/40 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.14),inset_0_1px_0_rgb(255_255_255/0.3),0_0_90px_-10px_rgb(92_232_255/0.45),0_50px_90px_-30px_rgb(0_0_0/0.9)]' : ''}`}>
-      <span aria-hidden className="pointer-events-none absolute left-1/2 top-[19px] z-10 h-[26px] w-[104px] -translate-x-1/2 rounded-full bg-black" />
-      {children}
-    </div>
-  )
 }
 
 /** Степпер в манере Orlina: крупная курсивная цифра + широкий капс; подсказка — у активного. */
