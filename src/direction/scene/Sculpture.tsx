@@ -16,7 +16,7 @@ export const CYAN = new Color('#5CE8FF')
  */
 function makeChrome() {
   const m = new MeshPhysicalMaterial({
-    color: '#0c2a33', metalness: 1, roughness: 0.3,
+    color: '#1a3a44', metalness: 1, roughness: 0.16,
     clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.1,
   })
   const uniforms = { uGlow: { value: 0 }, uCyan: { value: CYAN.clone() } }

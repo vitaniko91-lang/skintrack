@@ -33,7 +33,8 @@ function Rig({ reduced, narrow }: { reduced: boolean; narrow: boolean }) {
   return null
 }
 
-export default function SculptCanvas({ reduced }: { reduced: boolean }) {
+/** active=false — сцена целиком закрыта фото первого экрана: не рендерим впустую. */
+export default function SculptCanvas({ reduced, active = true }: { reduced: boolean; active?: boolean }) {
   const [hf, setHf] = useState<Heightfield | null>(null)
   const narrow = typeof window !== 'undefined' && window.innerWidth < 768
   useEffect(() => { loadHeightfieldOnce().then(setHf).catch(() => {}) }, [])
@@ -41,18 +42,21 @@ export default function SculptCanvas({ reduced }: { reduced: boolean }) {
     <Canvas
       dpr={[1, 1.75]}
       camera={{ fov: 30, near: 0.1, far: 200, position: [14, 6, -14] }}
-      frameloop={reduced ? 'demand' : 'always'}
+      frameloop={reduced ? 'demand' : active ? 'always' : 'never'}
       gl={{ antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: true }}
       aria-hidden
     >
       <color attach="background" args={['#04080C']} />
       <fog attach="fog" args={['#04080C', 26, 48]} />
-      <Environment resolution={256} frames={1}>
-        <Lightformer form="rect" intensity={6} color="#5CE8FF" position={[6, 5, -6]} scale={[10, 2, 1]} rotation-y={Math.PI / 4} />
-        <Lightformer form="rect" intensity={2} color="#dff9ff" position={[-6, 8, -2]} scale={[3, 8, 1]} />
-        <Lightformer form="ring" intensity={4} color="#9CF6FF" position={[0, 10, 6]} scale={4} />
-        <Lightformer form="rect" intensity={1.5} color="#0B6F86" position={[0, -4, 0]} rotation-x={Math.PI / 2} scale={[20, 20, 1]} />
+      {/* студийный свет для хрома: тонкие полосы дают резкие блики по гребням, а не пятна */}
+      <Environment resolution={512} frames={1}>
+        <Lightformer form="rect" intensity={8} color="#5CE8FF" position={[7, 4, -7]} scale={[12, 0.6, 1]} rotation-y={Math.PI / 4} />
+        <Lightformer form="rect" intensity={6} color="#ffffff" position={[-5, 9, -5]} scale={[0.5, 12, 1]} rotation-y={-Math.PI / 4} />
+        <Lightformer form="rect" intensity={5} color="#dff9ff" position={[5, 9, 5]} scale={[0.4, 12, 1]} rotation-y={Math.PI / 4} />
+        <Lightformer form="ring" intensity={4} color="#9CF6FF" position={[0, 12, 0]} rotation-x={Math.PI / 2} scale={5} />
+        <Lightformer form="rect" intensity={0.8} color="#0B6F86" position={[0, -4, 0]} rotation-x={Math.PI / 2} scale={[20, 20, 1]} />
       </Environment>
+      <directionalLight position={[6, 10, -4]} intensity={2.5} color="#e8fbff" />
       <Rig reduced={reduced} narrow={narrow} />
       <Halo reduced={reduced} />
       <Snow reduced={reduced} count={narrow ? 350 : 700} />

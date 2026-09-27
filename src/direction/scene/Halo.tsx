@@ -12,7 +12,7 @@ export function Halo({ reduced }: { reduced: boolean }) {
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
     fragmentShader: `uniform float uI; uniform vec3 uColor; varying vec2 vUv;
       void main(){ float r = length(vUv - 0.5) * 2.0;
-        float g = exp(-r * r * 5.0) * 0.55 + exp(-r * r * 28.0) * 0.5;
+        float g = exp(-r * r * 7.0) * 0.28 + exp(-r * r * 30.0) * 0.55;
         gl_FragColor = vec4(uColor * g * uI, 1.0); }`,
   }), [])
   const ring = useRef<Mesh>(null)

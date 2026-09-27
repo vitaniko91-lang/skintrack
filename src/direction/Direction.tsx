@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
@@ -87,6 +87,8 @@ function Motion() {
   const card = useRef<HTMLDivElement>(null)
   const chapter = useRef<HTMLDivElement>(null)
   const lenis = useRef<Lenis | null>(null)
+  const [active, setActive] = useState(false)
+  const activeRef = useRef(false)
 
   useEffect(() => {
     const l = new Lenis({ lerp: 0.085 })
@@ -127,7 +129,11 @@ function Motion() {
         scrollTrigger: {
           trigger: track.current, start: 'top top', end: 'bottom bottom', scrub: 0.8, invalidateOnRefresh: true,
         },
-        onUpdate() { stage.p = tl.progress() },
+        onUpdate() {
+          stage.p = tl.progress()
+          const on = stage.p > 0.002
+          if (on !== activeRef.current) { activeRef.current = on; setActive(on) }
+        },
       })
       tl.to({}, { duration: 1 }, 0)
         .to(photo.current, {
@@ -169,7 +175,7 @@ function Motion() {
       <div ref={track} className="relative h-[480vh]">
         <div className="sticky top-0 h-svh overflow-hidden bg-ground">
           <div className="absolute inset-0" aria-hidden>
-            <Suspense fallback={null}><SculptCanvas reduced={false} /></Suspense>
+            <Suspense fallback={null}><SculptCanvas reduced={false} active={active} /></Suspense>
           </div>
           <ChapterLabel ref={chapter} />
           <HeroPhoto ref={photo} className="z-20 [clip-path:inset(0%_0%_0%_0%_round_0px)]" />
