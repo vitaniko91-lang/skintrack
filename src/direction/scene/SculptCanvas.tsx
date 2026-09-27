@@ -40,7 +40,7 @@ export default function SculptCanvas({ reduced, active = true }: { reduced: bool
   useEffect(() => { loadHeightfieldOnce().then(setHf).catch(() => {}) }, [])
   return (
     <Canvas
-      dpr={[1, 1.75]}
+      dpr={[1, 1.5]}
       camera={{ fov: 30, near: 0.1, far: 200, position: [14, 6, -14] }}
       frameloop={reduced ? 'demand' : active ? 'always' : 'never'}
       gl={{ antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: true }}
@@ -48,21 +48,22 @@ export default function SculptCanvas({ reduced, active = true }: { reduced: bool
     >
       <color attach="background" args={['#04080C']} />
       <fog attach="fog" args={['#04080C', 26, 48]} />
-      {/* студийный свет для хрома: тонкие полосы дают резкие блики по гребням, а не пятна */}
-      <Environment resolution={512} frames={1}>
-        <Lightformer form="rect" intensity={8} color="#5CE8FF" position={[7, 4, -7]} scale={[12, 0.6, 1]} rotation-y={Math.PI / 4} />
-        <Lightformer form="rect" intensity={6} color="#ffffff" position={[-5, 9, -5]} scale={[0.5, 12, 1]} rotation-y={-Math.PI / 4} />
-        <Lightformer form="rect" intensity={5} color="#dff9ff" position={[5, 9, 5]} scale={[0.4, 12, 1]} rotation-y={Math.PI / 4} />
-        <Lightformer form="ring" intensity={4} color="#9CF6FF" position={[0, 12, 0]} rotation-x={Math.PI / 2} scale={5} />
-        <Lightformer form="rect" intensity={0.8} color="#0B6F86" position={[0, -4, 0]} rotation-x={Math.PI / 2} scale={[20, 20, 1]} />
+      {/* студия для тёмного хрома: чёрное окружение, редкие узкие полосы белого, циан — контровой сзади */}
+      <Environment resolution={512} frames={1} background={false}>
+        <color attach="background" args={['#000000']} />
+        <Lightformer form="rect" intensity={10} color="#ffffff" position={[-6, 7, -6]} scale={[0.35, 14, 1]} rotation-y={-Math.PI / 4} />
+        <Lightformer form="rect" intensity={7} color="#ffffff" position={[7, 6, 2]} scale={[0.25, 12, 1]} rotation-y={Math.PI / 2} />
+        <Lightformer form="rect" intensity={4} color="#f2fdff" position={[0, 12, 0]} scale={[14, 0.5, 1]} rotation-x={Math.PI / 2} />
+        <Lightformer form="rect" intensity={9} color="#5CE8FF" position={[-8, 3, 8]} scale={[16, 1.2, 1]} rotation-y={-Math.PI * 0.75} />
       </Environment>
-      <directionalLight position={[6, 10, -4]} intensity={2.5} color="#e8fbff" />
+      <directionalLight position={[-8, 6, 8]} intensity={3} color="#5CE8FF" />
+      <directionalLight position={[6, 10, -4]} intensity={1.2} color="#ffffff" />
       <Rig reduced={reduced} narrow={narrow} />
       <Halo reduced={reduced} />
       <Snow reduced={reduced} count={narrow ? 350 : 700} />
       {hf && <Sculpture hf={hf} segments={narrow ? 160 : 240} reduced={reduced} />}
       <EffectComposer multisampling={4}>
-        <Bloom mipmapBlur intensity={1.1} luminanceThreshold={0.55} luminanceSmoothing={0.2} radius={0.75} />
+        <Bloom mipmapBlur intensity={1.1} luminanceThreshold={0.78} luminanceSmoothing={0.15} radius={0.7} />
         <Vignette offset={0.25} darkness={0.7} />
       </EffectComposer>
     </Canvas>

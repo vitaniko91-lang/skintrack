@@ -8,6 +8,7 @@ import { Wordmark } from './Wordmark'
 import { SwipeCard } from './SwipeCard'
 import { ChapterLabel } from './ChapterLabel'
 import { stage } from './stage'
+import { TrackStroke } from './TrackStroke'
 
 gsap.registerPlugin(ScrollTrigger)
 const SculptCanvas = lazy(() => import('./scene/SculptCanvas'))
@@ -137,7 +138,8 @@ function Motion() {
       })
       tl.to({}, { duration: 1 }, 0)
         .to(photo.current, {
-          clipPath: narrow ? 'inset(9% 6% 55% 6% round 28px)' : 'inset(15% 58% 15% 5% round 40px)',
+          clipPath: narrow ? 'inset(34% 8% 28% 8% round 28px)' : 'inset(20% 58% 7% 5% round 40px)',
+          y: narrow ? 0 : -120,
           duration: 0.3, ease: 'power2.inOut',
         }, 0)
         .to(img, { scale: 1.0, duration: 0.3 }, 0)
@@ -179,6 +181,7 @@ function Motion() {
           </div>
           <ChapterLabel ref={chapter} />
           <HeroPhoto ref={photo} className="z-20 [clip-path:inset(0%_0%_0%_0%_round_0px)]" />
+          <TrackStroke imgSelector="[data-photo-img]" />
           <Nav logoRef={logo} />
           <Copy />
           <Wordmark ref={word} />

@@ -5,7 +5,9 @@ import { WORLD_SIZE, worldHeight } from '../../scene/terrainGeometry'
 /** Радиус, за которым рельеф срезается: гора стоит на круглом постаменте, а не на квадрате тайла. */
 export const RIM = 0.5
 /** До этого радиуса рельеф настоящий; между INNER и RIM он плавно уходит в ноль. */
-export const INNER = 0.4
+export const INNER = 0.3
+/** С этого радиуса поверхность гаснет в чёрное (шейдер): кромки не видно, «торта» нет. */
+export const FADE_FROM = 0.36
 
 function smooth(e0: number, e1: number, x: number): number {
   const t = Math.min(Math.max((x - e0) / (e1 - e0), 0), 1)
@@ -20,6 +22,32 @@ export function sculptFalloff(u: number, v: number): number {
 /** Высота скульптуры в мировых единицах. Одна функция для горы и для ленты-трека. */
 export function sculptHeight(hf: Heightfield, u: number, v: number): number {
   return worldHeight(hf, heightAt(hf, u, v)) * sculptFalloff(u, v)
+}
+
+/**
+ * Сглаженная копия карты высот (два прохода box-blur радиуса r).
+ * Хром отражает каждую ступеньку DEM как блик-крошку; сглаживание оставляет форму
+ * и снимает «серые пятна» на отражении.
+ */
+export function smoothHeightfield(hf: Heightfield, r = 2, passes = 2): Heightfield {
+  const { width: w, height: h } = hf
+  let src = Float32Array.from(hf.heights)
+  let dst = new Float32Array(w * h)
+  for (let pass = 0; pass < passes; pass++) {
+    for (const horiz of [true, false]) {
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        let sum = 0, n = 0
+        for (let k = -r; k <= r; k++) {
+          const xx = horiz ? Math.min(Math.max(x + k, 0), w - 1) : x
+          const yy = horiz ? y : Math.min(Math.max(y + k, 0), h - 1)
+          sum += src[yy * w + xx]; n++
+        }
+        dst[y * w + x] = sum / n
+      }
+      ;[src, dst] = [dst, src]
+    }
+  }
+  return { ...hf, heights: src }
 }
 
 export function uvToWorld(u: number, v: number): [number, number] {
@@ -46,8 +74,9 @@ export function buildSculptGeometry(hf: Heightfield, segments: number): PlaneGeo
     top = Math.max(top, y)
     radius[i] = Math.hypot(u - 0.5, v - 0.5)
   }
-  for (let i = 0; i < n; i++) aH[i] = top > 0 ? pos.getY(i) / top : 0
+  for (let i = 0; i < n; i++) aH[i] = top > 0 ? Math.max(pos.getY(i), 0) / top : 0
   g.setAttribute('aH', new BufferAttribute(aH, 1))
+  g.setAttribute('aR', new BufferAttribute(radius, 1))
 
   const src = g.index!.array
   const kept: number[] = []

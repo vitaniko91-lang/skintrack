@@ -16,6 +16,7 @@ export function makeRibbonMaterial() {
     polygonOffsetFactor: -4,
     uniforms: {
       uDraw: { value: 0 },
+      uStart: { value: 0 },
       uTime: { value: 0 },
       uColor: { value: new Color('#5CE8FF') },
       uHot: { value: new Color('#D8FBFF') },
@@ -32,13 +33,14 @@ export function makeRibbonMaterial() {
       }`,
     fragmentShader: /* glsl */ `
       uniform float uDraw;
+      uniform float uStart;
       uniform float uTime;
       uniform vec3 uColor;
       uniform vec3 uHot;
       varying float vT;
       varying float vSide;
       void main() {
-        if (vT > uDraw || uDraw <= 0.0) discard;
+        if (vT > uDraw || vT < uStart || uDraw <= uStart) discard;
         float edge = 1.0 - abs(vSide);
         float core = pow(edge, 2.5);
         float chevron = 0.75 + 0.25 * step(0.5, fract(vT * 180.0 + abs(vSide) * 0.6 - uTime * 0.6));

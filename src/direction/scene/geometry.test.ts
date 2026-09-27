@@ -1,4 +1,4 @@
-import { buildSculptGeometry, sculptFalloff, sculptHeight, RIM } from './sculptGeometry'
+import { buildSculptGeometry, sculptFalloff, sculptHeight, smoothHeightfield, RIM } from './sculptGeometry'
 import { buildRibbon } from './ribbonGeometry'
 import { ROUTE_UV } from '../../terrain/route'
 import type { Heightfield } from '../../terrain/decode'
@@ -17,6 +17,19 @@ describe('sculpt', () => {
   it('falls to zero at the rim and stays whole in the middle', () => {
     expect(sculptFalloff(0.5, 0.5)).toBe(1)
     expect(sculptFalloff(0.5 + RIM, 0.5)).toBe(0)
+  })
+
+  it('meets the ground at the rim', () => {
+    expect(sculptHeight(cone(), 0.5 + RIM, 0.5)).toBeCloseTo(0, 5)
+  })
+
+  it('smoothing keeps size and mean height', () => {
+    const hf = cone()
+    const s = smoothHeightfield(hf)
+    const mean = (a: Float32Array) => a.reduce((x, y) => x + y, 0) / a.length
+    expect(s.heights.length).toBe(hf.heights.length)
+    expect(Math.abs(mean(s.heights) - mean(hf.heights))).toBeLessThan(15)
+    expect(Math.max(...s.heights)).toBeLessThan(Math.max(...hf.heights))
   })
 
   it('drops every triangle outside the rim', () => {

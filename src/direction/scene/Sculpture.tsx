@@ -1,51 +1,69 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Color, MeshPhysicalMaterial, type Group } from 'three'
+import { Color, MeshPhysicalMaterial, Vector3, type Group } from 'three'
 import type { Heightfield } from '../../terrain/decode'
 import { ROUTE_UV } from '../../terrain/route'
-import { buildSculptGeometry } from './sculptGeometry'
+import { buildSculptGeometry, smoothHeightfield, FADE_FROM } from './sculptGeometry'
 import { buildRibbon } from './ribbonGeometry'
 import { makeRibbonMaterial } from './ribbonMaterial'
 import { stage, span, easeOut, easeInOut } from '../stage'
 
 export const CYAN = new Color('#5CE8FF')
 
+/** Тонкие гравированные изолинии: ?contours в адресе. По умолчанию — чистый хром. */
+const CONTOURS = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('contours') ? 1 : 0
+
 /**
- * Хромированная гора: физический металл отражает световые панели Environment,
- * поверх — светящиеся изолинии и циановый ободок по Френелю (их ловит Bloom).
+ * Тёмный полированный хром, как кольца TLC: металл без собственного цвета отражает
+ * почти чёрное окружение с редкими световыми полосами. Циан — только ободок по Френелю
+ * и контровой свет; подножие гаснет в темноту по мировой высоте.
  */
 function makeChrome() {
   const m = new MeshPhysicalMaterial({
-    color: '#1a3a44', metalness: 1, roughness: 0.16,
-    clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.1,
+    color: '#aeb8bc', metalness: 1, roughness: 0.13,
+    envMapIntensity: 1.35, transparent: true,
   })
-  const uniforms = { uGlow: { value: 0 }, uCyan: { value: CYAN.clone() } }
+  const uniforms = { uGlow: { value: 0 }, uCyan: { value: CYAN.clone() }, uContours: { value: CONTOURS } }
   m.onBeforeCompile = (s) => {
     Object.assign(s.uniforms, uniforms)
     s.vertexShader = s.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aH;\nvarying float vH;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvH = aH;')
+      .replace('#include <common>', '#include <common>\nattribute float aH;\nattribute float aR;\nvarying float vH;\nvarying float vR;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvH = aH;\nvR = aR;')
     s.fragmentShader = s.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform float uGlow;\nuniform vec3 uCyan;\nvarying float vH;')
+      .replace('#include <common>', '#include <common>\nuniform float uGlow;\nuniform float uContours;\nuniform vec3 uCyan;\nvarying float vH;\nvarying float vR;')
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
-        float cl = vH * 18.0;
+        float cl = vH * 16.0;
         float d = 0.5 - abs(fract(cl) - 0.5);
-        float line = 1.0 - smoothstep(0.0, fwidth(cl) * 1.3, d);
-        float rim = pow(1.0 - saturate(dot(normalize(vViewPosition), normal)), 4.0);
-        totalEmissiveRadiance += uCyan * uGlow * (line * (0.35 + 1.6 * vH) + rim * 0.9);`,
+        float line = (1.0 - smoothstep(0.0, fwidth(cl) * 0.9, d)) * step(0.02, vH);
+        float rim = pow(1.0 - saturate(dot(normalize(vViewPosition), normal)), 5.0);
+        totalEmissiveRadiance += uCyan * uGlow * (rim * 0.55 + line * uContours * 0.22);`,
+      )
+      .replace(
+        '#include <dithering_fragment>',
+        `#include <dithering_fragment>
+        // кромка растворяется в фоне (альфа), а не лежит чёрным диском поверх ореола
+        gl_FragColor.a *= smoothstep(0.47, 0.33, vR);`,
       )
   }
   return { m, uniforms }
 }
 
+const w = new Vector3()
+
 export function Sculpture({ hf, segments, reduced }: { hf: Heightfield; segments: number; reduced: boolean }) {
   const group = useRef<Group>(null)
-  const geo = useMemo(() => buildSculptGeometry(hf, segments), [hf, segments])
-  const ribbon = useMemo(() => buildRibbon(hf, ROUTE_UV), [hf])
+  const smooth = useMemo(() => smoothHeightfield(hf, 4, 3), [hf])
+  const geo = useMemo(() => buildSculptGeometry(smooth, segments), [smooth, segments])
+  const ribbon = useMemo(() => buildRibbon(smooth, ROUTE_UV), [smooth])
   const chrome = useMemo(makeChrome, [])
   const ribbonMat = useMemo(makeRibbonMaterial, [])
+  /** Эстафета: лента видима с точки, где трек выходит из темноты кромки на освещённый склон. */
+  const hand = useMemo(() => {
+    const i = Math.max(ribbon.centre.findIndex((c) => Math.hypot(c.x, c.z) / 10 < FADE_FROM - 0.02), 0)
+    return { i, t: ribbon.geometry.attributes.aT.array[i * 2] as number }
+  }, [ribbon])
 
   useFrame((state) => {
     const p = reduced ? 1 : stage.p
@@ -55,12 +73,20 @@ export function Sculpture({ hf, segments, reduced }: { hf: Heightfield; segments
     g.scale.set(1, Math.max(rise, 0.02), 1)
     g.position.y = (1 - rise) * -1.2
     g.rotation.y = -0.55 + easeInOut(span(p, 0, 1)) * 0.6 + (reduced ? 0 : Math.sin(t * 0.15) * 0.03)
-    chrome.uniforms.uGlow.value = 0.35 + 0.65 * span(p, 0.2, 0.6)
-    // трек по склону рисуется в 0.32–0.78, хвост к следующей главе — в 0.78–1
-    const up = span(p, 0.32, 0.78)
+    chrome.uniforms.uGlow.value = 0.4 + 0.6 * span(p, 0.2, 0.6)
+    // 2D-штрих с фото приходит к подножию к 0.3; дальше 3D-лента: склон 0.3–0.78, хвост 0.78–1
+    const up = span(p, 0.3, 0.78)
     const tail = span(p, 0.78, 1)
-    ribbonMat.uniforms.uDraw.value = up < 1 ? up * ribbon.routeEnd : ribbon.routeEnd + tail * (1 - ribbon.routeEnd)
+    ribbonMat.uniforms.uStart.value = hand.t
+    ribbonMat.uniforms.uDraw.value = up < 1 ? hand.t + up * (ribbon.routeEnd - hand.t) : ribbon.routeEnd + tail * (1 - ribbon.routeEnd)
     ribbonMat.uniforms.uTime.value = t
+
+    // эстафета: экранная точка начала ленты
+    g.updateMatrixWorld()
+    w.copy(ribbon.centre[hand.i]).applyMatrix4(g.matrixWorld).project(state.camera)
+    stage.rx = (w.x * 0.5 + 0.5) * state.size.width
+    stage.ry = (-w.y * 0.5 + 0.5) * state.size.height
+    stage.rReady = true
   })
 
   return (

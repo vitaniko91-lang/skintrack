@@ -1,7 +1,7 @@
-import { useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Billboard } from '@react-three/drei'
-import { AdditiveBlending, Color, ShaderMaterial, type Mesh } from 'three'
+import { AdditiveBlending, Color, ShaderMaterial } from 'three'
 import { stage, span } from '../stage'
 
 /** Радиальный ореол за скульптурой (приём TLC): аддитивный, растёт с переходом. */
@@ -15,27 +15,17 @@ export function Halo({ reduced }: { reduced: boolean }) {
         float g = exp(-r * r * 7.0) * 0.28 + exp(-r * r * 30.0) * 0.55;
         gl_FragColor = vec4(uColor * g * uI, 1.0); }`,
   }), [])
-  const ring = useRef<Mesh>(null)
   useFrame((s) => {
     const p = reduced ? 1 : stage.p
     mat.uniforms.uI.value = span(p, 0.05, 0.5) * (0.9 + (reduced ? 0 : 0.1 * Math.sin(s.clock.elapsedTime * 0.8)))
-    if (ring.current) {
-      ring.current.rotation.z = reduced ? 0.3 : s.clock.elapsedTime * 0.12
-      ring.current.scale.setScalar(0.6 + 0.4 * span(p, 0.1, 0.5))
-    }
   })
   return (
     <>
-      <Billboard position={[0, 1.6, 0]}>
+      <Billboard position={[0, 2.2, 0]}>
         <mesh material={mat} renderOrder={-1}>
           <planeGeometry args={[22, 22]} />
         </mesh>
       </Billboard>
-      {/* постамент: тонкое светящееся кольцо у подножия */}
-      <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-        <torusGeometry args={[5.25, 0.025, 8, 256]} />
-        <meshBasicMaterial color={[0.6, 2.2, 2.6]} toneMapped={false} />
-      </mesh>
     </>
   )
 }
