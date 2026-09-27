@@ -1,0 +1,48 @@
+@import "tailwindcss";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource/instrument-serif/400-italic.css";
+@plugin "@iconify/tailwind4";
+
+@theme static {
+  --color-ground: #04080c;
+  --color-ground-1: #0a141c;
+  --color-cyan: #5ce8ff;
+  --color-cyan-hot: #b8f7ff;
+  --color-ink: #021016;
+  --color-body: #eaf6fa;
+  --color-muted: #9fb8c2;
+  --color-danger-3: #ff9a1f;
+
+  --font-sans: "Archivo Variable", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+  --font-serif: "Instrument Serif", serif;
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html { background: var(--color-ground); color: var(--color-body); }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--color-cyan); outline-offset: 3px; }
+
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+/* вордмарк: широкая Archivo, строчные, плотный трекинг в em (масштабируется с кеглем) */
+.wordmark {
+  font-variation-settings: "wdth" 112;
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 0.78;
+}
+.caps-wide { font-variation-settings: "wdth" 125; }
+
+/* шеврон-«ёлочка» в пилюле: бегущий блик */
+@keyframes chevron-run { 0%, 100% { opacity: 0.25 } 50% { opacity: 1 } }
+.chev > span { animation: chevron-run 1.4s var(--ease-expo) infinite; }
+.chev > span:nth-child(2) { animation-delay: 0.15s }
+.chev > span:nth-child(3) { animation-delay: 0.3s }
+
+@media (prefers-reduced-motion: reduce) {
+  .chev > span { animation: none; opacity: 0.8; }
+}
