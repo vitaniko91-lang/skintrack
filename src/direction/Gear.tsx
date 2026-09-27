@@ -134,7 +134,7 @@ export function Gear({ reduced = false }: { reduced?: boolean }) {
           <li key={it.key} className={`${it.cls} will-change-[transform,opacity] max-md:col-span-1 max-md:row-span-1 max-md:aspect-[4/5]`}>
             <figure data-card className="group relative h-full overflow-hidden rounded-[40px] bg-ground-1 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] transition-transform duration-200 ease-out will-change-transform max-md:rounded-[28px]">
               <img src={it.src} alt={it.alt} loading="lazy" decoding="async" className={`h-[112%] w-full -translate-y-[6%] object-cover will-change-transform ${it.pos}`} />
-              <figcaption className="absolute bottom-4 left-4 flex h-9 items-center gap-2 rounded-full bg-[rgb(4_8_12/0.72)] px-4 font-mono text-[11px] uppercase tracking-[0.16em] text-body backdrop-blur-md">
+              <figcaption className="absolute bottom-4 left-4 flex h-9 items-center gap-2 rounded-full bg-[rgb(4_8_12/0.72)] px-4 font-mono text-[11px] uppercase tracking-[0.16em] text-body">
                 <span aria-hidden className="size-1.5 rounded-full bg-cyan" />{it.label}
               </figcaption>
             </figure>

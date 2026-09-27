@@ -154,7 +154,7 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
               alt="A line of six ski tourers skins uphill across a wide snowfield below sunlit peaks in the Lyngen Alps."
               loading="lazy"
               decoding="async"
-              className="h-full w-full origin-[62%_30%] object-cover object-[60%_45%] [transform:scale(1.3)] max-md:origin-[70%_72%] max-md:object-[72%_60%]"
+              className="h-full w-full origin-[62%_30%] will-change-transform object-cover object-[60%_45%] [transform:scale(1.3)] max-md:origin-[70%_72%] max-md:object-[72%_60%]"
             />
           </picture>
           {/* чернила слева и снизу — под белой фразой держат контраст AA, справа фото остаётся цветом */}
@@ -170,20 +170,22 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
           <span className="caps-wide -ml-2 text-[clamp(1.2rem,1.9vw,2rem)] font-extrabold uppercase tracking-[-0.02em] text-white">manifesto</span>
         </div>
 
+        {/* фраза, фото и каждое слово — свои слои: --lit перекрашивает одно слово, а не всю фразу
+            с 30px-ореолом (иначе растр всей фразы на каждом кадре скролла: 22 → 60 fps) */}
         <h2 id="manifesto-h" className="sr-only">Every slope has a number. Know it before you’re standing on it.</h2>
         <p
           ref={phrase}
           aria-hidden
-          className="manifesto absolute bottom-[14svh] left-[5vw] z-10 max-w-[16ch] text-[clamp(2.6rem,7.4vw,8.6rem)] font-semibold leading-[0.95] tracking-[-0.045em] max-md:bottom-[12svh] max-md:left-4 max-md:right-4"
+          className="manifesto absolute bottom-[14svh] will-change-transform left-[5vw] z-10 max-w-[16ch] text-[clamp(2.6rem,7.4vw,8.6rem)] font-semibold leading-[0.95] tracking-[-0.045em] max-md:bottom-[12svh] max-md:left-4 max-md:right-4"
         >
           {LINES.map((line, li) => (
             <span key={li} className="block whitespace-nowrap max-md:whitespace-normal">
               {line.map((w, wi) => (
                 <span key={wi}>
                   {w.accent ? (
-                    <span data-w className="accent font-serif font-normal italic tracking-[-0.01em]">{w.text}</span>
+                    <span data-w className="accent inline-block font-serif font-normal italic tracking-[-0.01em] will-change-transform">{w.text}</span>
                   ) : (
-                    <span data-w>{w.text}</span>
+                    <span data-w className="inline-block will-change-transform">{w.text}</span>
                   )}
                   {wi < line.length - 1 ? ' ' : ''}
                 </span>

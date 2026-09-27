@@ -53,8 +53,11 @@ export function TrackStroke({ imgSelector }: { imgSelector: string }) {
       const img = document.querySelector(imgSelector) as HTMLElement | null
       if (!img) return
       const p = stage.p
-      // вне окна эстафеты штрих невидим — не трогаем DOM, иначе SVG-блюр перерисовывается каждый кадр
-      if (!(p > 0.0005 && p < 0.6) || !stage.rReady) {
+      const drawn = span(p, 0.02, 0.3), erased = span(p, 0.36, 0.56)
+      // вне окна эстафеты (и до 0.02 / после стирания) штриха нет — не трогаем DOM:
+      // полноэкранный SVG с блюром иначе растрится каждый кадр
+      const empty = drawn - erased <= 0 && !(drawn > 0 && drawn < 1)
+      if (!(p > 0.0005 && p < 0.6) || !stage.rReady || empty) {
         if (!idle) { root.style.visibility = 'hidden'; idle = true }
         return
       }
@@ -64,7 +67,6 @@ export function TrackStroke({ imgSelector }: { imgSelector: string }) {
       const key = `${d}|${p.toFixed(4)}`
       if (key === last) return // ничего не сдвинулось — не перерисовываем SVG
       last = key
-      const drawn = span(p, 0.02, 0.3), erased = span(p, 0.36, 0.56)
       let L = 0
       for (const el of [glow, core]) {
         el.setAttribute('d', d)
