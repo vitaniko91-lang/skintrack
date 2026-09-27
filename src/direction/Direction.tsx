@@ -12,7 +12,8 @@ import { TrackStroke } from './TrackStroke'
 import { RouteCards } from './RouteCards'
 import { Manifesto } from './Manifesto'
 import { TryIt } from './TryIt'
-import { Credits, Finale, GearSlot } from './Finale'
+import { Credits, Finale } from './Finale'
+import { Gear } from './Gear'
 
 gsap.registerPlugin(ScrollTrigger)
 const SculptCanvas = lazy(() => import('./scene/SculptCanvas'))
@@ -95,7 +96,7 @@ function Static() {
       </section>
       <Manifesto reduced />
       <TryIt reduced />
-      <GearSlot />
+      <Gear reduced />
       <Finale reduced />
       <Credits />
     </main>
@@ -243,7 +244,7 @@ function Motion() {
       </div>
       <Manifesto />
       <TryIt />
-      <GearSlot />
+      <Gear />
       <Finale />
       <Credits />
     </main>

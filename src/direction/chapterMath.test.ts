@@ -1,4 +1,4 @@
-import { approach, floatY, finalePhases, mixPose, poseEqual, poseTransform, ROW_POSE, screenRibbonPath, SLOT_POSE, slotOf, tryPhases } from './chapterMath'
+import { approach, floatY, gearRibbonPath, tiltFor, finalePhases, mixPose, poseEqual, poseTransform, ROW_POSE, screenRibbonPath, SLOT_POSE, slotOf, tryPhases } from './chapterMath'
 import { samplePath } from './layout'
 
 describe('slotOf', () => {
@@ -71,5 +71,32 @@ describe('phases', () => {
     expect(finalePhases(0.66).fill).toBe(1)
     expect(finalePhases(0.6).erase).toBe(0)
     expect(finalePhases(1)).toEqual({ draw: 1, erase: 1, fill: 1, ui: 1 })
+  })
+})
+
+describe('tiltFor', () => {
+  it('is flat in the middle and tilts toward the pointer', () => {
+    expect(tiltFor(0.5, 0.5, 8)).toEqual({ rx: 0, ry: 0 })
+    expect(tiltFor(1, 0, 8)).toEqual({ rx: 8, ry: 8 })
+    expect(tiltFor(-3, 9, 8)).toEqual({ rx: -8, ry: -8 })
+  })
+})
+
+describe('gearRibbonPath', () => {
+  // 1440: шлем 5 колонок на 2 ряда, часы 7, бутылка 3, шапка 4; щели 24
+  const rects = [
+    { x: 58, y: 300, w: 530, h: 1064 },
+    { x: 612, y: 300, w: 770, h: 520 },
+    { x: 612, y: 844, w: 318, h: 520 },
+    { x: 954, y: 844, w: 428, h: 520 },
+  ]
+  const pts = samplePath(gearRibbonPath(rects, 1440, 1600).replace(/L([\d.-]+),([\d.-]+)/g, 'C$1,$2 $1,$2 $1,$2'), 30)
+  it('enters above the section and leaves below it', () => {
+    expect(pts[0].y).toBeLessThan(0)
+    expect(pts[pts.length - 1].y).toBeGreaterThan(1600)
+  })
+  it('runs inside the gutters, not across the photos', () => {
+    const inside = (p: { x: number; y: number }, r: typeof rects[0]) => p.x > r.x + 30 && p.x < r.x + r.w - 30 && p.y > r.y + 30 && p.y < r.y + r.h - 30
+    expect(pts.filter((p) => rects.some((r) => inside(p, r)))).toEqual([])
   })
 })

@@ -16,31 +16,6 @@ const WORD = 'skintrack'
 const noop = () => {}
 
 /**
- * Глава 05 · Gear — СЛОТ. Контент (мокапы вордмарка на шлеме, бутылке, кепке) делает
- * другой агент в docs/portfolio/skintrack/gear/. Здесь только подпись главы и пустая сетка.
- */
-export function GearSlot() {
-  return (
-    <section id="chapter-05" data-slot="chapter-05-gear" aria-label="Chapter 05 · Gear (in production)" className="relative bg-ground px-[5vw] py-[14svh] max-md:px-4 max-md:py-20">
-      <div className="flex items-baseline gap-4">
-        <span className="font-serif text-[clamp(3rem,5vw,5.5rem)] italic leading-none text-cyan">05</span>
-        <span className="font-mono text-[12px] uppercase tracking-[0.22em] text-muted max-md:hidden">Chapter · of 06</span>
-        <span className="font-serif text-[clamp(1.6rem,2.4vw,2.6rem)] italic text-cyan-hot">The</span>
-        <span className="caps-wide -ml-2 text-[clamp(1.2rem,1.9vw,2rem)] font-extrabold uppercase tracking-[-0.02em] text-white">gear</span>
-      </div>
-      {/* ── SLOT · chapter 05 · Gear: mockups go here (docs/portfolio/skintrack/gear/) ── */}
-      <ul className="mt-12 grid grid-cols-3 gap-6 max-md:grid-cols-1" aria-hidden>
-        {['helmet', 'bottle', 'cap'].map((k) => (
-          <li key={k} className="grid aspect-[4/5] place-items-center rounded-[32px] border border-dashed border-white/15 font-mono text-[11px] uppercase tracking-[0.18em] text-muted/70">
-            {k} · mockup slot
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-/**
  * Глава 06 · финал (RideOn «Thanks»): карточка-фото с телефоном в наклоне, лента влетает
  * сверху и ведёт по вордмарку — её голова открывает контур букв, буквы заливаются,
  * лента втягивается в них. Кнопки: прототип (#try) и кейс (./case.html).

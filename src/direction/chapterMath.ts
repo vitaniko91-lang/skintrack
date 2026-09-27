@@ -107,3 +107,34 @@ export function finalePhases(r: number) {
     ui: span(r, 0.58, 0.74),
   }
 }
+
+/** Наклон карточки за курсором: u, v — положение указателя в карточке 0..1. */
+export function tiltFor(u: number, v: number, max: number) {
+  const c = (n: number) => Math.min(Math.max(n, 0), 1)
+  return { rx: (0.5 - c(v)) * 2 * max, ry: (c(u) - 0.5) * 2 * max }
+}
+
+interface Box { x: number; y: number; w: number; h: number }
+
+/**
+ * Лента главы 05 по щелям доски: [шлем (высокая слева), часы (широкая справа сверху),
+ * бутылка, шапка (нижний ряд справа)]. Входит сверху по щели шлем|часы, поворачивает
+ * в щель между рядами, уходит вниз между бутылкой и шапкой — к финалу.
+ */
+export function gearRibbonPath(r: readonly Box[], w: number, h: number): string {
+  const [helmet, watch, bottle, beanie] = r
+  const x1 = (helmet.x + helmet.w + watch.x) / 2
+  const gy = (watch.y + watch.h + bottle.y) / 2
+  const x2 = (bottle.x + bottle.w + beanie.x) / 2
+  const turn = Math.min(90, (x2 - x1) / 2.5)
+  const f = (n: number) => n.toFixed(1)
+  void w
+  return [
+    `M${f(x1)},${f(-60)}`,
+    `L${f(x1)},${f(gy - turn)}`,
+    `C${f(x1)},${f(gy - turn * 0.35)} ${f(x1 + turn * 0.35)},${f(gy)} ${f(x1 + turn)},${f(gy)}`,
+    `L${f(x2 - turn)},${f(gy)}`,
+    `C${f(x2 - turn * 0.35)},${f(gy)} ${f(x2)},${f(gy + turn * 0.35)} ${f(x2)},${f(gy + turn)}`,
+    `L${f(x2)},${f(h + 60)}`,
+  ].join(' ')
+}
