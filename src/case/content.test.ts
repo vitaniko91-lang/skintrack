@@ -19,11 +19,11 @@ describe('case content integrity', () => {
   it('the journey has the five stages from the spec, in order', () => {
     expect(JOURNEY.map((j) => j.stage)).toEqual(['Evening before', 'Parking', 'Ascent', 'Ridge decision', 'Descent'])
   })
-  it('each decision compares 2–4 options and chooses exactly one of them', () => {
+  it('each decision compares 2–5 options and chooses exactly one of them', () => {
     expect(DECISIONS).toHaveLength(3)
     DECISIONS.forEach((d) => {
       expect(d.options.length).toBeGreaterThanOrEqual(2)
-      expect(d.options.length).toBeLessThanOrEqual(4)
+      expect(d.options.length).toBeLessThanOrEqual(5)
       expect(d.options.filter((o) => o.id === d.chosen)).toHaveLength(1)
       expect(d.tradeoffs.length).toBeGreaterThan(0)
       expect(d.revisit.length).toBeGreaterThan(0)

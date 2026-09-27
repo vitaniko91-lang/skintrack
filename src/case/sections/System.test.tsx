@@ -9,10 +9,10 @@ describe('System', () => {
   it('reads token values from CSS, not from a copy in JS', () => {
     // jsdom не считает каскад Tailwind — подменяем getComputedStyle и проверяем, что значение берётся оттуда
     const spy = vi.spyOn(window, 'getComputedStyle').mockReturnValue({
-      getPropertyValue: (n: string) => (n === '--color-accent' ? ' #bfe0ee' : ''),
+      getPropertyValue: (n: string) => (n === '--color-accent' ? ' #5ce8ff' : ''),
     } as unknown as CSSStyleDeclaration)
     render(<System />)
-    expect(screen.getByText('#BFE0EE')).toBeInTheDocument()
+    expect(screen.getByText('#5CE8FF')).toBeInTheDocument()
     spy.mockRestore()
   })
   it('separates safety colours from brand colours', () => {
