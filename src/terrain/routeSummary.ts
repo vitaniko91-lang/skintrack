@@ -48,7 +48,8 @@ export function formatDuration(minutes: number): string {
 export function formatRouteStats(s: RouteStats): { label: string; value: string }[] {
   return [
     { label: 'max slope', value: `${Math.round(s.maxSlopeDeg)}°` },
-    { label: 'gain', value: `${Math.round(s.gainM)} m` },
+    // до 10 м, как на топокартах: «999 m» читается как заглушка, а точнее 10 м DEM не даёт
+    { label: 'gain', value: `${(Math.round(s.gainM / 10) * 10).toLocaleString('en-US')} m` },
     { label: 'time', value: formatDuration(s.minutes) },
   ]
 }

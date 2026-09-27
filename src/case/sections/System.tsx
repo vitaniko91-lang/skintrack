@@ -36,7 +36,7 @@ const TYPE = [
   { sample: 'skintrack', spec: 'Archivo · 125% width · 800 · −0.03em — wordmark', className: 'text-5xl font-extrabold lowercase tracking-[-0.03em]', stretch: '125%' },
   { sample: 'Read the slope', spec: 'Archivo · 115% width · 700 · −0.02em — headings', className: 'text-4xl font-bold tracking-[-0.02em]', stretch: '115%' },
   { sample: 'Space out: one at a time.', spec: 'Archivo · 100% width · 400 — body', className: 'text-xl', stretch: '100%' },
-  { sample: '38° · 999 m · 3:18', spec: 'JetBrains Mono · tabular numbers — data, coordinates, labels', className: 'font-mono text-3xl tabular-nums', stretch: '100%' },
+  { sample: '38° · 1,000 m · 3:18', spec: 'JetBrains Mono · tabular numbers — data, coordinates, labels', className: 'font-mono text-3xl tabular-nums', stretch: '100%' },
 ]
 
 export function System() {

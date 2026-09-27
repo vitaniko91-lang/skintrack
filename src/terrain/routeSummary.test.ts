@@ -17,9 +17,16 @@ describe('formatRouteStats', () => {
     const rows = formatRouteStats({ lengthM: 3183, gainM: 999.4, maxSlopeDeg: 37.6, minutes: 198 })
     expect(rows).toEqual([
       { label: 'max slope', value: '38°' },
-      { label: 'gain', value: '999 m' },
+      { label: 'gain', value: '1,000 m' },
       { label: 'time', value: '3:18' },
     ])
+  })
+
+  it('rounds gain to 10 m like a topo map, with a thousands separator', () => {
+    const gain = (g: number) => formatRouteStats({ lengthM: 1, gainM: g, maxSlopeDeg: 0, minutes: 0 })[1].value
+    expect(gain(994.9)).toBe('990 m')
+    expect(gain(1234)).toBe('1,230 m')
+    expect(gain(40)).toBe('40 m')
   })
 })
 
