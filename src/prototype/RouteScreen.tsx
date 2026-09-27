@@ -13,7 +13,7 @@ interface Props {
 export function RouteScreen({ state, dispatch, stats, reduced }: Props) {
   return (
     <ScreenShell index={1} title="Build a route">
-      <div className="min-h-0 flex-1 px-4">
+      <div className="flex min-h-0 flex-1 items-center px-4">
         <RouteMap drawn={state.routeBuilt} slopeOn={false} reduced={reduced} />
       </div>
       <div className="space-y-4 p-4">

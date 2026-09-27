@@ -52,7 +52,7 @@ const fragment = /* glsl */ `
   // Коридор маршрута: ±270 м (≈ 270 / 6786 в UV), мягкий край ≈ 170 м.
   const float CORRIDOR = 0.04;
   const float CORRIDOR_SOFT = 0.025;
-  const float TINT = 0.10;   // вся гора — тихая тонировка
+  const float TINT = 0.07;   // вся гора — тихая тонировка
   const float FOCUS = 0.55;  // в коридоре — крутизна вдоль твоего пути
 
   void main() {

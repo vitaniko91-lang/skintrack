@@ -10,7 +10,7 @@ export function SlopeScreen({ state, dispatch, reduced }: Props) {
   const on = state.slopeOn
   return (
     <ScreenShell index={2} title="Read the slope">
-      <div className="min-h-0 flex-1 px-4">
+      <div className="flex min-h-0 flex-1 items-center px-4">
         <RouteMap drawn slopeOn={on} reduced={reduced} />
       </div>
       <div className="space-y-4 p-4">

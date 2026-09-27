@@ -3,13 +3,13 @@ import { useFrame } from '@react-three/fiber'
 import { CatmullRomCurve3, Color, ShaderMaterial, TubeGeometry, Vector3 } from 'three'
 import { heightAt, type Heightfield } from '../terrain/decode'
 import { ROUTE_UV } from '../terrain/route'
-import { WORLD_SIZE, worldHeight } from './terrainGeometry'
+import { edgeSink, WORLD_SIZE, worldHeight } from './terrainGeometry'
 import { introState, scrollState } from './choreography'
 
 const LIFT = 0.04
 
 export function uvToWorld(hf: Heightfield, u: number, v: number): Vector3 {
-  return new Vector3((u - 0.5) * WORLD_SIZE, worldHeight(hf, heightAt(hf, u, v)) + LIFT, (v - 0.5) * WORLD_SIZE)
+  return new Vector3((u - 0.5) * WORLD_SIZE, worldHeight(hf, heightAt(hf, u, v)) * edgeSink(u, v) + LIFT, (v - 0.5) * WORLD_SIZE)
 }
 
 /** Трубка гаснет у края тайла той же маской, что и рельеф (terrainMaterial) — старт из долины не висит в пустоте. */

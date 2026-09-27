@@ -7,6 +7,16 @@ export const WORLD_SIZE = 10
 /** Вертикальное преувеличение: на экране горы читаются плоскими без него. */
 export const EXAGGERATION = 1.35
 
+/**
+ * Опускание рельефа к краю тайла: гребни уходят в землю, а не обрезаются о небо.
+ * Одна функция для геометрии и для трека — иначе трек повиснет над опущенным краем.
+ */
+export function edgeSink(u: number, v: number): number {
+  const d = Math.hypot(u - 0.5, v - 0.5)
+  const t = Math.min(Math.max((0.54 - d) / (0.54 - 0.40), 0), 1)
+  return 0.35 + 0.65 * t * t * (3 - 2 * t)
+}
+
 export function worldHeight(hf: Heightfield, meters: number): number {
   const spanMeters = (hf.width - 1) * hf.cellMeters
   return ((meters - hf.minH) / spanMeters) * WORLD_SIZE * EXAGGERATION
@@ -32,7 +42,7 @@ export function buildTerrainGeometry(
     const u = col / segments
     const v = row / segments
     const h = heightAt(hf, u, v)
-    pos.setY(i, worldHeight(hf, h))
+    pos.setY(i, worldHeight(hf, h) * edgeSink(u, v))
     aHeight[i] = (h - hf.minH) / range
     const sx = Math.round(u * (hf.width - 1))
     const sy = Math.round(v * (hf.height - 1))

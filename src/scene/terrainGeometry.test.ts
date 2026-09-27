@@ -1,4 +1,4 @@
-import { buildTerrainGeometry, WORLD_SIZE } from './terrainGeometry'
+import { buildTerrainGeometry, edgeSink, WORLD_SIZE } from './terrainGeometry'
 import type { Heightfield } from '../terrain/decode'
 
 const hf: Heightfield = {
@@ -32,5 +32,16 @@ describe('buildTerrainGeometry', () => {
   it('spans WORLD_SIZE on x', () => {
     g.computeBoundingBox()
     expect(g.boundingBox!.max.x - g.boundingBox!.min.x).toBeCloseTo(WORLD_SIZE, 5)
+  })
+})
+
+describe('edgeSink', () => {
+  it('leaves the centre untouched and sinks the corners', () => {
+    expect(edgeSink(0.5, 0.5)).toBe(1)
+    expect(edgeSink(0, 0)).toBeCloseTo(0.35, 5)
+  })
+  it('only falls with distance from the centre', () => {
+    const d = [0.30, 0.42, 0.46, 0.50, 0.60].map((r) => edgeSink(0.5 + r, 0.5))
+    for (let i = 1; i < d.length; i++) expect(d[i]).toBeLessThanOrEqual(d[i - 1])
   })
 })
