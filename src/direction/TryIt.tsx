@@ -11,7 +11,7 @@ import { SlopeScreen } from '../prototype/SlopeScreen'
 import { GroupScreen } from '../prototype/GroupScreen'
 import { WarningScreen } from '../prototype/WarningScreen'
 import { ChapterLabel } from './ChapterLabel'
-import { approach, mixPose, poseEqual, poseTransform, ROW_POSE, screenRibbonPath, SLOT_POSE, slotOf, tryPhases, type Pose } from './chapterMath'
+import { approach, floatY, mixPose, poseEqual, poseTransform, ROW_POSE, screenRibbonPath, SLOT_POSE, slotOf, tryPhases, type Pose } from './chapterMath'
 import { stage } from './stage'
 
 const EMPTY_STATS = [
@@ -134,14 +134,15 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
     let k = reduced ? 1 : 0 // въезд тройки 0..1
     let r = reduced ? 0.4 : 0 // прогресс закреплённой части (лента)
     let near = true
-    let settled = false
     const [glow, core] = Array.from(ribbon.current!.querySelectorAll('path'))
     const head = ribbon.current!.querySelector('circle')!
     let lastRibbon = ''
 
     const fitOf = () => Math.min(1, (innerHeight * 0.86) / DH, (root.clientWidth * 0.5) / DW)
 
+    let now = performance.now()
     const place = (dt: number) => {
+      now = performance.now()
       const fit = fitOf()
       const tilt = reduced ? { x: 0, y: 0 } : { x: stage.px * 4, y: stage.py * 3 }
       let moving = false
@@ -151,7 +152,9 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
         const target = mixPose(ROW_POSE[slot], SLOT_POSE[slot], k)
         cur[i] = reduced || dt <= 0 ? target : approach(cur[i], target, dt)
         if (!poseEqual(cur[i], target)) moving = true
-        const t = poseTransform(cur[i], DW, DH, fit, slot === 'front' ? tilt : { x: 0, y: 0 })
+        // парение: только в движущемся режиме, у переднего вдвое тише — по нему попадают пальцем
+        const lift = reduced ? 0 : floatY(i, now / 1000, slot === 'front' ? 3 : 8) * k
+        const t = poseTransform(cur[i], DW, DH, fit, slot === 'front' ? tilt : { x: 0, y: 0 }, lift)
         if (t !== last[i]) {
           last[i] = t
           el.style.transform = t
@@ -204,8 +207,8 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
     const tick = () => {
       const now = performance.now(), dt = Math.min((now - prev) / 1000, 0.05)
       prev = now
-      if (!near && settled) return
-      settled = !place(dt)
+      if (!near) return // вне кадра телефоны не трогаем (парение иначе крутило бы тикер вечно)
+      place(dt)
       drawRibbon()
     }
 
@@ -222,12 +225,12 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: section.current, start: 'top bottom', end: 'bottom top',
-        onToggle: (self) => { near = self.isActive; if (near) settled = false },
+        onToggle: (self) => { near = self.isActive },
       })
       const enter = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: { trigger: section.current, start: 'top 85%', end: 'top top', scrub: 0.6 },
-        onUpdate() { k = gsap.parseEase('power2.out')(enter.progress()); settled = false },
+        onUpdate() { k = gsap.parseEase('power2.out')(enter.progress()) },
       })
       enter.to({}, { duration: 1 }, 0)
       const lb = label.current!
@@ -307,7 +310,7 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
                         <Device glow>{livePhone}</Device>
                       </div>
                     ) : (
-                      <div inert aria-hidden className="cursor-pointer">
+                      <div inert aria-hidden className={`cursor-pointer ${slotOf(i, active, SCREENS.length) === 'right' ? 'screen-light' : ''}`}>
                         <Device>
                           <FigureContext value={true}>
                             <PhoneFrame conditions={DEFAULT_CONDITIONS} variant="figure">

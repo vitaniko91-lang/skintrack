@@ -80,3 +80,15 @@ html.lenis, html.lenis body { height: auto; }
 
 /* у «Try» и «See you» есть нижний выносной y — капс под ними опускаем, чтобы хвост не лёг между словами */
 #chapter-04 [data-ch="read"] { margin-bottom: 0.1em; }
+
+/* светлый экран у соседнего телефона (RideOn мешает белый экран с тёмными) — только застывший сосед */
+.screen-light {
+  --color-ground: #eef8fb;
+  --color-ground-1: #dceef4;
+  --color-ground-2: #c8e2ea;
+  --color-body: #04141c;
+  --color-muted: #3f5a66;
+  --color-line: rgb(2 16 22 / 0.12);
+  --color-accent: #0a8fb3;
+  color: var(--color-body);
+}

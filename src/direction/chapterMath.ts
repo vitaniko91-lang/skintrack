@@ -23,9 +23,9 @@ export interface Pose { x: number; y: number; z: number; rx: number; ry: number;
 
 /** Наклонная тройка (RideOn): активный впереди почти анфас, соседи уходят вглубь с разворотом. */
 export const SLOT_POSE: Record<Slot, Pose> = {
-  front: { x: 0, y: 0, z: 0, rx: 5, ry: -10, rz: -3, s: 1, dim: 0, op: 1 },
-  left: { x: -0.8, y: 0.06, z: -300, rx: 8, ry: 28, rz: -16, s: 1, dim: 0.28, op: 1 },
-  right: { x: 0.76, y: -0.05, z: -340, rx: 4, ry: -30, rz: 11, s: 1, dim: 0.34, op: 1 },
+  front: { x: 0, y: 0, z: 0, rx: 8, ry: -15, rz: -5, s: 1, dim: 0, op: 1 },
+  left: { x: -0.86, y: 0.1, z: -380, rx: 12, ry: 34, rz: -22, s: 1, dim: 0.22, op: 1 },
+  right: { x: 0.8, y: -0.08, z: -420, rx: 6, ry: -36, rz: 16, s: 1, dim: 0.12, op: 1 },
   back: { x: 0, y: -0.06, z: -700, rx: 0, ry: 0, rz: 0, s: 0.9, dim: 0.8, op: 0 },
 }
 
@@ -54,10 +54,15 @@ export function poseEqual(a: Pose, b: Pose, eps = 0.002): boolean {
   return KEYS.every((k) => Math.abs(a[k] - b[k]) < (k === 'z' ? 0.5 : eps))
 }
 
+/** Лёгкое парение: смещение по y (px) для телефона i в момент t (с); у каждого своя фаза. */
+export function floatY(i: number, t: number, amp = 7): number {
+  return Math.sin(t * 0.9 + i * 1.9) * amp
+}
+
 /** CSS transform телефона шириной w и высотой h (px) при общем масштабе fit. */
-export function poseTransform(p: Pose, w: number, h: number, fit: number, tilt: Pt = { x: 0, y: 0 }): string {
+export function poseTransform(p: Pose, w: number, h: number, fit: number, tilt: Pt = { x: 0, y: 0 }, lift = 0): string {
   const f = (n: number, d = 2) => n.toFixed(d)
-  return `translate3d(${f(p.x * w * fit, 1)}px,${f(p.y * h * fit, 1)}px,${f(p.z * fit, 1)}px) `
+  return `translate3d(${f(p.x * w * fit, 1)}px,${f(p.y * h * fit + lift, 1)}px,${f(p.z * fit, 1)}px) `
     + `rotateX(${f(p.rx - tilt.y)}deg) rotateY(${f(p.ry + tilt.x)}deg) rotateZ(${f(p.rz)}deg) scale(${f(p.s * fit, 4)})`
 }
 

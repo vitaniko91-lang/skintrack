@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { manifestoPath } from './layout'
 import { span, easeOut } from './stage'
 
-const W = [640, 1280, 2048]
+const W = [640, 1280, 2048, 2880]
 const set = (ext: string) => W.map((w) => `./photo/manifesto-${w}.${ext} ${w}w`).join(', ')
 
 /** Запас холста сверху и снизу: слой ленты едет вместе с фразой, края не должны открываться. */
@@ -109,8 +109,8 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
         clipPath: 'inset(0% 0% 0% 0% round 0px)', ease: 'none',
         scrollTrigger: { trigger: section.current, start: 'top bottom', end: 'top top', scrub: 0.6 },
       })
-      gsap.fromTo(img.current, { scale: 1.68, yPercent: -3 }, {
-        scale: 1.46, yPercent: 2, ease: 'none',
+      gsap.fromTo(img.current, { scale: 1.48, yPercent: -3 }, {
+        scale: 1.3, yPercent: 2, ease: 'none',
         scrollTrigger: { trigger: section.current, start: 'top bottom', end: 'bottom bottom', scrub: 0.6 },
       })
       gsap.fromTo(hud.current, { yPercent: 60 }, {
@@ -149,16 +149,16 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
               src="./photo/manifesto-1280.webp"
               srcSet={set('webp')}
               sizes="100vw"
-              alt="Ski tourers skin uphill on a sunlit track toward a snowy cirque, poles planted, skis on their feet."
+              alt="A line of six ski tourers skins uphill across a wide snowfield below sunlit peaks in the Lyngen Alps."
               loading="lazy"
               decoding="async"
-              className="h-full w-full origin-[26%_92%] object-cover object-[60%_55%] [transform:scale(1.46)] max-md:origin-[40%_80%] max-md:object-[62%_60%]"
+              className="h-full w-full origin-[62%_30%] object-cover object-[60%_45%] [transform:scale(1.3)] max-md:origin-[70%_72%] max-md:object-[72%_60%]"
             />
           </picture>
           {/* чернила слева и снизу — под белой фразой держат контраст AA, справа фото остаётся цветом */}
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(20deg,rgb(2_16_22/0.85)_0%,rgb(2_16_22/0.55)_28%,transparent_55%)] max-md:bg-[linear-gradient(to_top,rgb(2_16_22/0.92)_0%,rgb(2_16_22/0.7)_50%,rgb(2_16_22/0.1)_85%)]" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_34%_at_36%_66%,rgb(2_16_22/0.82),rgb(2_16_22/0.45)_60%,transparent_100%)] max-md:hidden" />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[34%] bg-[linear-gradient(to_bottom,rgb(2_16_22/0.78),rgb(2_16_22/0.4)_55%,transparent)]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[40%] bg-[linear-gradient(to_bottom,rgb(2_16_22/0.88),rgb(2_16_22/0.5)_55%,transparent)]" />
         </div>
 
         <div data-m="label" className="absolute left-[5vw] top-[12svh] z-10 flex items-baseline gap-4 max-md:left-4 max-md:top-[10svh]">
@@ -204,7 +204,7 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
         <svg ref={svg} aria-hidden className="invisible absolute h-0 w-0"><path /></svg>
 
         <p className="absolute bottom-4 right-[5vw] z-10 font-mono text-[10px] uppercase tracking-[0.16em] text-white/70 max-md:right-4">
-          Photo · Holly Mandarich / Unsplash
+          Photo · Hendrik Morkel / Unsplash
         </p>
       </div>
     </section>

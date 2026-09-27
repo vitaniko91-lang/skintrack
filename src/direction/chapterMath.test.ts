@@ -1,4 +1,4 @@
-import { approach, finalePhases, mixPose, poseEqual, poseTransform, ROW_POSE, screenRibbonPath, SLOT_POSE, slotOf, tryPhases } from './chapterMath'
+import { approach, floatY, finalePhases, mixPose, poseEqual, poseTransform, ROW_POSE, screenRibbonPath, SLOT_POSE, slotOf, tryPhases } from './chapterMath'
 import { samplePath } from './layout'
 
 describe('slotOf', () => {
@@ -34,7 +34,14 @@ describe('poses', () => {
   })
   it('writes a transform with translate, rotations and scale', () => {
     const t = poseTransform(SLOT_POSE.front, 390, 800, 0.8)
-    expect(t).toMatch(/^translate3d\(0\.0px,0\.0px,0\.0px\) rotateX\(5\.00deg\) rotateY\(-10\.00deg\) rotateZ\(-3\.00deg\) scale\(0\.8000\)$/)
+    expect(t).toMatch(/^translate3d\(0\.0px,0\.0px,0\.0px\) rotateX\(8\.00deg\) rotateY\(-15\.00deg\) rotateZ\(-5\.00deg\) scale\(0\.8000\)$/)
+  })
+})
+
+describe('floatY', () => {
+  it('stays within the amplitude and differs per phone', () => {
+    for (let t = 0; t < 10; t += 0.37) expect(Math.abs(floatY(0, t))).toBeLessThanOrEqual(7)
+    expect(floatY(0, 1)).not.toBeCloseTo(floatY(1, 1), 2)
   })
 })
 
