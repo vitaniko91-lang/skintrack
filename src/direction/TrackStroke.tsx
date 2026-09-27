@@ -8,13 +8,8 @@ const IMG_H = 853
 const POS_X = 0.28 // object-position 28% 50% — как у <img> в HeroPhoto
 const POS_Y = 0.5
 
-/**
- * След бутпака на фото: от ботинка переднего лыжника вниз по траншее.
- * Точки сняты по кадру 1280×853 (сетка по assets-src/hero.jpg).
- */
-export const TRACK_IMG: readonly [number, number][] = [
-  [400, 698], [428, 718], [452, 742], [474, 768], [492, 792], [505, 812],
-]
+/** Ботинок переднего лыжника в кадре 1280×853 (сетка по assets-src/hero.jpg). */
+export const BOOT_IMG: readonly [number, number] = [400, 698]
 
 /** Пиксель кадра → пиксель экрана с учётом object-fit: cover и текущего transform <img>. */
 export function imageToScreen(r: { left: number; top: number; width: number; height: number }, x: number, y: number) {
@@ -24,73 +19,64 @@ export function imageToScreen(r: { left: number; top: number; width: number; hei
   return [r.left + ox + x * s, r.top + oy + y * s] as const
 }
 
-function smoothPath(pts: readonly (readonly [number, number])[]): string {
-  // Catmull-Rom → кубические Безье
-  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[Math.max(i - 1, 0)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(i + 2, pts.length - 1)]
-    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6]
-    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6]
-    d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`
-  }
-  return d
+/**
+ * Одна дуга от ботинка к точке эстафеты: стартует вверх-вправо (подъём), а в конце
+ * идёт ровно по экранной касательной 3D-ленты — стык без излома.
+ */
+export function arcPath(B: readonly [number, number], S: readonly [number, number], tan: readonly [number, number]): string {
+  const dx = S[0] - B[0], dy = S[1] - B[1]
+  const dist = Math.hypot(dx, dy) || 1
+  const a = 0.62 * Math.sign(dx || 1)
+  const ux = dx / dist, uy = dy / dist
+  const r0 = [ux * Math.cos(a) + uy * Math.sin(a), -ux * Math.sin(a) + uy * Math.cos(a)]
+  const k = dist * 0.38
+  const c1 = [B[0] + r0[0] * k, B[1] + r0[1] * k]
+  const c2 = [S[0] - tan[0] * k, S[1] - tan[1] * k]
+  const f = (n: number) => n.toFixed(1)
+  return `M${f(B[0])},${f(B[1])} C${f(c1[0])},${f(c1[1])} ${f(c2[0])},${f(c2[1])} ${f(S[0])},${f(S[1])}`
 }
 
 /**
- * 2D-штрих поверх фото: рисуется по следу в кадре (0–0.13), уходит из карточки-фото
- * мостом к экранной точке начала 3D-ленты (0.13–0.3), затем стирается с хвоста
- * (0.36–0.56) — эстафета переходит к 3D-ленте на горе.
+ * 2D-штрих поверх фото: одной дугой от ботинка к экранной точке, где из темноты
+ * выходит 3D-лента (рисуется 0.02–0.3), затем стирается с хвоста (0.36–0.56).
  */
 export function TrackStroke({ imgSelector }: { imgSelector: string }) {
   const svg = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
     const root = svg.current!
-    const [glowA, coreA, glowB, coreB] = Array.from(root.querySelectorAll('path'))
+    const [glow, core] = Array.from(root.querySelectorAll('path'))
     const head = root.querySelector('circle')!
-    const set = (el: SVGPathElement, d: string, a: number, b: number) => {
-      el.setAttribute('d', d)
-      const L = el.getTotalLength()
-      const vis = Math.max(b - a, 0) * L
-      el.style.strokeDasharray = `${vis} ${L * 2}`
-      el.style.strokeDashoffset = `${-a * L}`
-      el.style.opacity = vis > 0.5 ? '1' : '0'
-      return L
-    }
     let idle = false
+    let last = ''
     const tick = () => {
       const img = document.querySelector(imgSelector) as HTMLElement | null
       if (!img) return
       const p = stage.p
       // вне окна эстафеты штрих невидим — не трогаем DOM, иначе SVG-блюр перерисовывается каждый кадр
-      const inWindow = p > 0.0005 && p < 0.6
-      if (!inWindow) {
+      if (!(p > 0.0005 && p < 0.6) || !stage.rReady) {
         if (!idle) { root.style.visibility = 'hidden'; idle = true }
         return
       }
       if (idle) { root.style.visibility = 'visible'; idle = false }
-      const r = img.getBoundingClientRect()
-      const pts = TRACK_IMG.map(([x, y]) => imageToScreen(r, x, y))
-      const dA = smoothPath(pts)
-      const aDraw = span(p, 0.0, 0.13), aErase = span(p, 0.36, 0.46)
-      set(glowA, dA, aErase, aDraw)
-      set(coreA, dA, aErase, aDraw)
-
-      const E = pts[pts.length - 1]
-      const S: readonly [number, number] = stage.rReady ? [stage.rx, stage.ry] : [E[0] + 300, E[1] + 40]
-      const dx = S[0] - E[0]
-      const dB = `M${E[0].toFixed(1)},${E[1].toFixed(1)} C${(E[0] + 70).toFixed(1)},${(E[1] + 34).toFixed(1)} ${(S[0] - dx * 0.42).toFixed(1)},${(S[1] + 46).toFixed(1)} ${S[0].toFixed(1)},${S[1].toFixed(1)}`
-      const bDraw = stage.rReady ? span(p, 0.13, 0.3) : 0, bErase = span(p, 0.44, 0.58)
-      set(glowB, dB, bErase, bDraw)
-      const LB = set(coreB, dB, bErase, bDraw)
-
-      // горячая голова на фронте рисования
-      let hx = pts[0][0], hy = pts[0][1], show = 0
-      if (bDraw > 0 && bDraw < 1) { const q = coreB.getPointAtLength(bDraw * LB); hx = q.x; hy = q.y; show = 1 }
-      else if (aDraw > 0 && aDraw < 1) { const q = coreA.getPointAtLength(aDraw * coreA.getTotalLength()); hx = q.x; hy = q.y; show = 1 }
-      head.setAttribute('cx', hx.toFixed(1))
-      head.setAttribute('cy', hy.toFixed(1))
-      head.style.opacity = String(show)
+      const B = imageToScreen(img.getBoundingClientRect(), BOOT_IMG[0], BOOT_IMG[1])
+      const d = arcPath(B, [stage.rx, stage.ry], [stage.rdx, stage.rdy])
+      const key = `${d}|${p.toFixed(4)}`
+      if (key === last) return // ничего не сдвинулось — не перерисовываем SVG
+      last = key
+      const drawn = span(p, 0.02, 0.3), erased = span(p, 0.36, 0.56)
+      let L = 0
+      for (const el of [glow, core]) {
+        el.setAttribute('d', d)
+        L = el.getTotalLength()
+        const vis = Math.max(drawn - erased, 0) * L
+        el.style.strokeDasharray = `${vis} ${L * 2}`
+        el.style.strokeDashoffset = `${-erased * L}`
+        el.style.opacity = vis > 0.5 ? '1' : '0'
+      }
+      const show = drawn > 0 && drawn < 1
+      if (show) { const q = core.getPointAtLength(drawn * L); head.setAttribute('cx', q.x.toFixed(1)); head.setAttribute('cy', q.y.toFixed(1)) }
+      head.style.opacity = show ? '1' : '0'
     }
     gsap.ticker.add(tick)
     return () => gsap.ticker.remove(tick)
@@ -98,15 +84,8 @@ export function TrackStroke({ imgSelector }: { imgSelector: string }) {
 
   return (
     <svg ref={svg} aria-hidden className="pointer-events-none absolute inset-0 z-[35] h-full w-full overflow-visible">
-      <defs>
-        <filter id="trk-glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="7" />
-        </filter>
-      </defs>
-      <path fill="none" stroke="#5CE8FF" strokeWidth="14" strokeLinecap="round" filter="url(#trk-glow)" opacity="0" />
-      <path fill="none" stroke="#D8FBFF" strokeWidth="4" strokeLinecap="round" opacity="0" />
-      <path fill="none" stroke="#5CE8FF" strokeWidth="14" strokeLinecap="round" filter="url(#trk-glow)" opacity="0" />
-      <path fill="none" stroke="#D8FBFF" strokeWidth="4" strokeLinecap="round" opacity="0" />
+      <path fill="none" stroke="rgb(92 232 255 / 0.42)" strokeWidth="16" strokeLinecap="round" opacity="0" />
+      <path fill="none" stroke="#E8FDFF" strokeWidth="5" strokeLinecap="round" opacity="0" />
       <circle r="7" fill="#ffffff" style={{ filter: 'drop-shadow(0 0 8px #5CE8FF) drop-shadow(0 0 20px #5CE8FF)' }} opacity="0" />
     </svg>
   )

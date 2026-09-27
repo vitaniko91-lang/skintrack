@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { Color, MeshPhysicalMaterial, Vector3, type Group } from 'three'
 import type { Heightfield } from '../../terrain/decode'
 import { ROUTE_UV } from '../../terrain/route'
-import { buildSculptGeometry, smoothHeightfield, FADE_FROM } from './sculptGeometry'
+import { buildFacetedSculpt, FADE_FROM } from './sculptGeometry'
 import { buildRibbon } from './ribbonGeometry'
 import { makeRibbonMaterial } from './ribbonMaterial'
 import { stage, span, easeOut, easeInOut } from '../stage'
@@ -20,8 +20,8 @@ const CONTOURS = typeof window !== 'undefined' && new URLSearchParams(window.loc
  */
 function makeChrome() {
   const m = new MeshPhysicalMaterial({
-    color: '#aeb8bc', metalness: 1, roughness: 0.13,
-    envMapIntensity: 1.35, transparent: true,
+    color: '#7d898f', metalness: 1, roughness: 0.14,
+    envMapIntensity: 1.1, transparent: true,
   })
   const uniforms = { uGlow: { value: 0 }, uCyan: { value: CYAN.clone() }, uContours: { value: CONTOURS } }
   m.onBeforeCompile = (s) => {
@@ -51,12 +51,13 @@ function makeChrome() {
 }
 
 const w = new Vector3()
+const w2 = new Vector3()
 
 export function Sculpture({ hf, segments, reduced }: { hf: Heightfield; segments: number; reduced: boolean }) {
   const group = useRef<Group>(null)
-  const smooth = useMemo(() => smoothHeightfield(hf, 4, 3), [hf])
-  const geo = useMemo(() => buildSculptGeometry(smooth, segments), [smooth, segments])
-  const ribbon = useMemo(() => buildRibbon(smooth, ROUTE_UV), [smooth])
+  const facets = useMemo(() => buildFacetedSculpt(hf, segments), [hf, segments])
+  const geo = facets.geometry
+  const ribbon = useMemo(() => buildRibbon(hf, ROUTE_UV, { surface: facets.heightAt, lift: 0.12 }), [hf, facets])
   const chrome = useMemo(makeChrome, [])
   const ribbonMat = useMemo(makeRibbonMaterial, [])
   /** Эстафета: лента видима с точки, где трек выходит из темноты кромки на освещённый склон. */
@@ -86,6 +87,12 @@ export function Sculpture({ hf, segments, reduced }: { hf: Heightfield; segments
     w.copy(ribbon.centre[hand.i]).applyMatrix4(g.matrixWorld).project(state.camera)
     stage.rx = (w.x * 0.5 + 0.5) * state.size.width
     stage.ry = (-w.y * 0.5 + 0.5) * state.size.height
+    // экранное направление ленты в точке эстафеты — 2D-дуга входит по касательной
+    w2.copy(ribbon.centre[Math.min(hand.i + 8, ribbon.centre.length - 1)]).applyMatrix4(g.matrixWorld).project(state.camera)
+    const dx = (w2.x - w.x) * state.size.width, dy = -(w2.y - w.y) * state.size.height
+    const len = Math.hypot(dx, dy) || 1
+    stage.rdx = dx / len
+    stage.rdy = dy / len
     stage.rReady = true
   })
 

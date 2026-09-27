@@ -1,4 +1,4 @@
-import { buildSculptGeometry, sculptFalloff, sculptHeight, smoothHeightfield, RIM } from './sculptGeometry'
+import { buildFacetedSculpt, buildSculptGeometry, sculptFalloff, sculptHeight, smoothHeightfield, RIM } from './sculptGeometry'
 import { buildRibbon } from './ribbonGeometry'
 import { ROUTE_UV } from '../../terrain/route'
 import type { Heightfield } from '../../terrain/decode'
@@ -65,5 +65,32 @@ describe('ribbon', () => {
     expect(t[0]).toBe(0)
     expect(t[t.length - 1]).toBeCloseTo(1, 6)
     for (let i = 2; i < t.length; i += 2) expect(t[i]).toBeGreaterThanOrEqual(t[i - 2])
+  })
+})
+
+describe('faceted sculpt', () => {
+  const hf = cone()
+  const f = buildFacetedSculpt(hf, 16, 0)
+
+  it('is coarse: a few hundred triangles, flat per-face normals', () => {
+    const tris = f.geometry.attributes.position.count / 3
+    expect(tris).toBeGreaterThan(200)
+    expect(tris).toBeLessThan(16 * 16 * 2)
+    const nrm = f.geometry.attributes.normal
+    expect(nrm.getX(0)).toBeCloseTo(nrm.getX(1), 5)
+    expect(nrm.getY(0)).toBeCloseTo(nrm.getY(2), 5)
+  })
+
+  it('puts the peak exactly on a vertex', () => {
+    const top = f.heightAt(f.peak[0], f.peak[1])
+    expect(top).toBeCloseTo(sculptHeight(hf, f.peak[0], f.peak[1]), 4)
+  })
+
+  it('heightAt matches mesh vertices', () => {
+    const pos = f.geometry.attributes.position
+    for (let k = 0; k < 30; k++) {
+      const x = pos.getX(k), y = pos.getY(k), z = pos.getZ(k)
+      expect(f.heightAt(x / 10 + 0.5, z / 10 + 0.5)).toBeCloseTo(y, 3)
+    }
   })
 })

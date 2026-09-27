@@ -53,7 +53,7 @@ export default function SculptCanvas({ reduced, active = true }: { reduced: bool
         <color attach="background" args={['#000000']} />
         <Lightformer form="rect" intensity={10} color="#ffffff" position={[-6, 7, -6]} scale={[0.35, 14, 1]} rotation-y={-Math.PI / 4} />
         <Lightformer form="rect" intensity={7} color="#ffffff" position={[7, 6, 2]} scale={[0.25, 12, 1]} rotation-y={Math.PI / 2} />
-        <Lightformer form="rect" intensity={4} color="#f2fdff" position={[0, 12, 0]} scale={[14, 0.5, 1]} rotation-x={Math.PI / 2} />
+        <Lightformer form="rect" intensity={1.5} color="#f2fdff" position={[0, 12, 0]} scale={[14, 0.5, 1]} rotation-x={Math.PI / 2} />
         <Lightformer form="rect" intensity={9} color="#5CE8FF" position={[-8, 3, 8]} scale={[16, 1.2, 1]} rotation-y={-Math.PI * 0.75} />
       </Environment>
       <directionalLight position={[-8, 6, 8]} intensity={3} color="#5CE8FF" />
@@ -61,9 +61,9 @@ export default function SculptCanvas({ reduced, active = true }: { reduced: bool
       <Rig reduced={reduced} narrow={narrow} />
       <Halo reduced={reduced} />
       <Snow reduced={reduced} count={narrow ? 350 : 700} />
-      {hf && <Sculpture hf={hf} segments={narrow ? 160 : 240} reduced={reduced} />}
-      <EffectComposer multisampling={4}>
-        <Bloom mipmapBlur intensity={1.1} luminanceThreshold={0.78} luminanceSmoothing={0.15} radius={0.7} />
+      {hf && <Sculpture hf={hf} segments={17} reduced={reduced} />}
+      <EffectComposer multisampling={0}>
+        <Bloom mipmapBlur levels={6} resolutionScale={0.5} intensity={1.1} luminanceThreshold={0.78} luminanceSmoothing={0.15} radius={0.7} />
         <Vignette offset={0.25} darkness={0.7} />
       </EffectComposer>
     </Canvas>

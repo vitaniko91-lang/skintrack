@@ -16,6 +16,8 @@ export interface RibbonOptions {
   lift?: number
   /** конец хвоста в мировых координатах */
   tailEnd?: Vector3
+  /** высота поверхности в (u, v); по умолчанию — гладкая скульптура */
+  surface?: (u: number, v: number) => number
 }
 
 export interface Ribbon {
@@ -37,13 +39,14 @@ export function buildRibbon(hf: Heightfield, route: readonly UV[], o: RibbonOpti
   const width = o.width ?? 0.2
   const tailWidth = o.tailWidth ?? 0.9
   const lift = o.lift ?? 0.05
+  const surface = o.surface ?? ((u: number, v: number) => sculptHeight(hf, u, v))
 
   const uvCurve = new CatmullRomCurve3(route.map(([u, v]) => new Vector3(u, 0, v)), false, 'centripetal')
   const centre: Vector3[] = []
   for (let i = 0; i <= routeSamples; i++) {
     const p = uvCurve.getPoint(i / routeSamples)
     const [x, z] = uvToWorld(p.x, p.z)
-    centre.push(new Vector3(x, sculptHeight(hf, p.x, p.z) + lift, z))
+    centre.push(new Vector3(x, surface(p.x, p.z) + lift, z))
   }
 
   const last = centre[centre.length - 1]
