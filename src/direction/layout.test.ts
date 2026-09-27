@@ -1,4 +1,4 @@
-import { avoid, edgePoint, formatElevation, formatKm, hazardSpan, manifestoPath, ndcToScreen, placeCard } from './layout'
+import { avoid, edgePoint, formatElevation, formatKm, hazardSpan, manifestoPath, ndcToScreen, placeCard, samplePath } from './layout'
 
 describe('ndcToScreen', () => {
   it('maps NDC corners to pixel corners with y flipped', () => {
@@ -61,6 +61,34 @@ describe('manifestoPath', () => {
     expect(nums[1]).toBeLessThan(0)
     expect(nums[nums.length - 1]).toBeGreaterThan(900)
     expect(d.startsWith('M')).toBe(true)
+  })
+  // лента обходит фразу, а не режет буквы: ни одна точка кривой не заходит в блок текста
+  const cases = [
+    { w: 1440, h: 900, t: { x: 72, y: 470, w: 1260, h: 300 } },
+    { w: 1920, h: 1080, t: { x: 96, y: 560, w: 1400, h: 380 } },
+    { w: 375, h: 812, t: { x: 16, y: 470, w: 343, h: 230 } },
+  ]
+  for (const { w, h, t } of cases) {
+    it(`never crosses the text block at ${w}×${h}`, () => {
+      const pts = samplePath(manifestoPath(w, h, t), 60)
+      const inside = pts.filter((p) => p.x > t.x - 4 && p.x < t.x + t.w + 4 && p.y > t.y - 4 && p.y < t.y + t.h + 4)
+      expect(inside).toEqual([])
+    })
+    it(`wraps the block on three sides at ${w}×${h}`, () => {
+      const pts = samplePath(manifestoPath(w, h, t), 60)
+      expect(pts.some((p) => p.y < t.y && p.x > t.x && p.x < t.x + t.w)).toBe(true) // над
+      expect(pts.some((p) => p.x < t.x && p.y > t.y && p.y < t.y + t.h)).toBe(true) // слева
+      expect(pts.some((p) => p.y > t.y + t.h && p.x > t.x && p.x < t.x + t.w)).toBe(true) // под
+    })
+  }
+})
+
+describe('samplePath', () => {
+  it('samples cubic segments including endpoints', () => {
+    const pts = samplePath('M0,0 C0,0 10,0 10,0', 4)
+    expect(pts[0]).toEqual({ x: 0, y: 0 })
+    expect(pts[pts.length - 1]).toEqual({ x: 10, y: 0 })
+    expect(pts).toHaveLength(5)
   })
 })
 

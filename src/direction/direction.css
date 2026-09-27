@@ -14,6 +14,17 @@
   --color-muted: #9fb8c2;
   --color-danger-3: #ff9a1f;
 
+  /* токены живого прототипа (src/prototype) в палитре направления: акцент — циан, стекло тёмное */
+  --color-accent: #5ce8ff;
+  --color-ground-2: #102430;
+  --color-line: rgb(92 232 255 / 0.16);
+  --color-slope-30: #f4d35e;
+  --color-slope-35: #f08a24;
+  --color-slope-40: #d7263d;
+  --color-slope-45: #7b4fa3;
+  --radius-card: 24px;
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+
   --font-sans: "Archivo Variable", sans-serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
   --font-serif: "Instrument Serif", serif;
@@ -24,6 +35,9 @@
 html { background: var(--color-ground); color: var(--color-body); }
 body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
 :focus-visible { outline: 2px solid var(--color-cyan); outline-offset: 3px; }
+
+/* смена экрана телефона (как в прототипе): 200 мс, только opacity + translate */
+@keyframes screen-in { from { opacity: 0; translate: 12px 0; } }
 
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
@@ -44,13 +58,15 @@ html.lenis, html.lenis body { height: auto; }
 .chev > span:nth-child(3) { animation-delay: 0.3s }
 
 /* манифест: слово загорается от приглушённого к белому (--lit 0..1 пишет скролл) */
+/* тёмный ореол под фразой: лента и светлый снег за ней не спорят с буквами */
+.manifesto { text-shadow: 0 2px 30px rgb(2 16 22 / 0.7), 0 0 2px rgb(2 16 22 / 0.35); }
 .manifesto [data-w] {
   --lit: 0;
   color: rgb(234 246 250 / calc(0.34 + 0.66 * var(--lit)));
 }
 .manifesto .accent {
   color: rgb(92 232 255 / calc(0.45 + 0.55 * var(--lit)));
-  text-shadow: 0 0 calc(48px * var(--lit)) rgb(92 232 255 / 0.55);
+  text-shadow: 0 2px 30px rgb(2 16 22 / 0.7), 0 0 calc(48px * var(--lit)) rgb(92 232 255 / 0.55);
 }
 
 /* кольцо опасности у кулуара */

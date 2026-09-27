@@ -99,25 +99,57 @@ export function formatElevation(m: number): string {
   return `${Math.round(m).toLocaleString('en-US')} m`
 }
 
+/** Отрезок Эрмита (точка + касательная на концах) → кубическая Безье. */
+export interface Knot { x: number; y: number; tx: number; ty: number; k?: number }
+
+export function hermite(pts: Knot[]): string {
+  const f = (n: number) => n.toFixed(1)
+  let d = `M${f(pts[0].x)},${f(pts[0].y)}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1]
+    const L = Math.hypot(b.x - a.x, b.y - a.y) / 3
+    const na = Math.hypot(a.tx, a.ty) || 1, nb = Math.hypot(b.tx, b.ty) || 1
+    const la = L * (a.k ?? 1), lb = L * (b.k ?? 1)
+    d += ` C${f(a.x + (a.tx / na) * la)},${f(a.y + (a.ty / na) * la)} ${f(b.x - (b.tx / nb) * lb)},${f(b.y - (b.ty / nb) * lb)} ${f(b.x)},${f(b.y)}`
+  }
+  return d
+}
+
+/** Точки вдоль пути из M + C-сегментов (только то, что строит этот модуль): n точек на сегмент. */
+export function samplePath(d: string, n: number): Pt[] {
+  const nums = d.match(/-?\d+(\.\d+)?/g)!.map(Number)
+  const out: Pt[] = [{ x: nums[0], y: nums[1] }]
+  for (let i = 2; i + 5 < nums.length; i += 6) {
+    const [x0, y0] = [out[out.length - 1].x, out[out.length - 1].y]
+    const [x1, y1, x2, y2, x3, y3] = nums.slice(i, i + 6)
+    for (let j = 1; j <= n; j++) {
+      const t = j / n, u = 1 - t
+      out.push({
+        x: u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3,
+        y: u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3,
+      })
+    }
+  }
+  return out
+}
+
 /**
  * Путь 2D-ленты через манифест: входит сверху справа (оттуда уходит 3D-хвост главы 02),
- * делает петлю вокруг акцентного слова и уходит вниз к главе 04. Всё — за краями кадра.
+ * проходит НАД фразой справа налево, огибает её левый край и уходит под строками
+ * вниз, к главе 04. Буквы не пересекает ни в одной точке — ленту видно, текст читается.
+ * `t` — габарит всей фразы (все строки).
  */
 export function manifestoPath(w: number, h: number, t: Rect): string {
-  const f = (n: number) => n.toFixed(1)
-  const cx = t.x + t.w / 2, cy = t.y + t.h / 2
-  const rx = t.w / 2 + Math.max(24, t.h * 0.35), ry = t.h / 2 + Math.max(18, t.h * 0.3)
-  const s = { x: w * 0.9, y: -h * 0.2 }
-  const a = { x: cx + rx, y: cy - ry * 0.2 } // вход в петлю справа
-  const e = { x: w * 0.62, y: h * 1.2 }
-  return [
-    `M${f(s.x)},${f(s.y)}`,
-    // вниз по диагонали к правому краю слова
-    `C${f(w * 0.98)},${f(h * 0.3)} ${f(a.x + rx * 0.9)},${f(a.y - ry * 1.6)} ${f(a.x)},${f(a.y)}`,
-    // петля: под словом влево, вокруг левого края, над словом назад
-    `C${f(a.x - rx * 0.1)},${f(cy + ry * 1.25)} ${f(cx - rx * 1.25)},${f(cy + ry * 1.1)} ${f(cx - rx)},${f(cy)}`,
-    `C${f(cx - rx * 0.9)},${f(cy - ry * 1.35)} ${f(cx + rx * 0.7)},${f(cy - ry * 1.4)} ${f(cx + rx * 0.95)},${f(cy + ry * 0.2)}`,
-    // и вниз, к следующей главе
-    `C${f(cx + rx * 1.2)},${f(cy + ry * 2.6)} ${f(w * 0.5)},${f(h * 0.8)} ${f(e.x)},${f(e.y)}`,
-  ].join(' ')
+  const g = Math.max(22, Math.min(64, t.h * 0.16)) // зазор от текста
+  const r = Math.max(18, g * 0.8) // вылет петли за левый край
+  const top = t.y - g, bot = t.y + t.h + g
+  return hermite([
+    { x: w * 0.9, y: -h * 0.2, tx: -0.35, ty: 1 },
+    { x: Math.max(t.x + t.w * 0.55, w * 0.6), y: top, tx: -1, ty: 0.06 },
+    { x: t.x - r * 0.55, y: t.y - g * 0.45, tx: -0.8, ty: 1, k: 0.8 },
+    { x: t.x - r, y: t.y + t.h / 2, tx: 0, ty: 1, k: 0.8 },
+    { x: t.x - r * 0.55, y: t.y + t.h + g * 0.45, tx: 0.8, ty: 1, k: 0.8 },
+    { x: t.x + Math.min(t.w * 0.18, 140), y: bot, tx: 1, ty: 0.05 },
+    { x: w * 0.7, y: h * 1.2, tx: 0.55, ty: 1 },
+  ])
 }

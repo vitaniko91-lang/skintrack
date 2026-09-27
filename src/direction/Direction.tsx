@@ -11,6 +11,8 @@ import { stage } from './stage'
 import { TrackStroke } from './TrackStroke'
 import { RouteCards } from './RouteCards'
 import { Manifesto } from './Manifesto'
+import { TryIt } from './TryIt'
+import { Credits, Finale, GearSlot } from './Finale'
 
 gsap.registerPlugin(ScrollTrigger)
 const SculptCanvas = lazy(() => import('./scene/SculptCanvas'))
@@ -41,16 +43,6 @@ function Copy() {
       Avalanche-aware ski touring.<br />
       <span className="font-serif text-[1.3em] italic text-cyan-hot">Read the slope</span> before it reads you.
     </p>
-  )
-}
-
-function NextChapter() {
-  return (
-    <section className="relative flex h-svh items-center bg-ground px-[5vw]">
-      <p className="font-mono text-[12px] uppercase tracking-[0.22em] text-muted">
-        04 · <span className="font-serif text-2xl normal-case italic tracking-normal text-cyan">Try</span> it — next chapter (outside this prototype)
-      </p>
-    </section>
   )
 }
 
@@ -102,7 +94,10 @@ function Static() {
         <RouteCards />
       </section>
       <Manifesto reduced />
-      <NextChapter />
+      <TryIt reduced />
+      <GearSlot />
+      <Finale reduced />
+      <Credits />
     </main>
   )
 }
@@ -247,7 +242,10 @@ function Motion() {
         </div>
       </div>
       <Manifesto />
-      <NextChapter />
+      <TryIt />
+      <GearSlot />
+      <Finale />
+      <Credits />
     </main>
   )
 }

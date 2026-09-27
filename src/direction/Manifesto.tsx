@@ -12,7 +12,7 @@ const PAD = 160
 /** Слои ленты: широкое свечение → ядро. */
 const STROKES: [number, string][] = [[26, 'rgba(92,232,255,0.16)'], [12, 'rgba(92,232,255,0.4)'], [5, '#E8FDFF']]
 
-/** Фраза по словам; accent — курсивная антиква в циане, вокруг неё петляет лента. */
+/** Фраза по словам; accent — курсивная антиква в циане. */
 const LINES: { text: string; accent?: boolean }[][] = [
   [{ text: 'Every' }, { text: 'slope' }, { text: 'has' }, { text: 'a' }, { text: 'number.' }],
   [{ text: 'Know it', accent: true }, { text: 'before' }, { text: 'you’re' }],
@@ -22,14 +22,13 @@ const LINES: { text: string; accent?: boolean }[][] = [
 /**
  * Глава 03 · манифест. Фото во всю ширину раскрывается из скруглённой карточки
  * (обратный ход главы 01), гигантская фраза загорается по словам, 2D-лента
- * входит сверху, петляет вокруг «Know it» и уходит вниз — к главе 04.
+ * входит сверху, огибает фразу (над ней, слева, под ней — буквы не пересекает) и уходит вниз — к главе 04.
  */
 export function Manifesto({ reduced = false }: { reduced?: boolean }) {
   const section = useRef<HTMLElement>(null)
   const frame = useRef<HTMLDivElement>(null)
   const img = useRef<HTMLImageElement>(null)
   const phrase = useRef<HTMLParagraphElement>(null)
-  const accent = useRef<HTMLSpanElement>(null)
   const svg = useRef<SVGSVGElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const hud = useRef<HTMLDivElement>(null)
@@ -52,8 +51,14 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
       scale = cw < 768 ? 0.55 : 1
       dpr = Math.min(devicePixelRatio || 1, 2)
       cv.width = Math.round(cw * dpr); cv.height = Math.round((ch + PAD * 2) * dpr)
-      const p = phrase.current!, a = accent.current!
-      const box = { x: p.offsetLeft + a.offsetLeft, y: p.offsetTop + a.offsetTop, w: a.offsetWidth, h: a.offsetHeight }
+      // габарит всей фразы по словам (строки nowrap могут вылезать за ширину <p>)
+      const p = phrase.current!
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
+      for (const w of words) {
+        x0 = Math.min(x0, w.offsetLeft); y0 = Math.min(y0, w.offsetTop)
+        x1 = Math.max(x1, w.offsetLeft + w.offsetWidth); y1 = Math.max(y1, w.offsetTop + w.offsetHeight)
+      }
+      const box = { x: p.offsetLeft + x0, y: p.offsetTop + y0, w: x1 - x0, h: y1 - y0 }
       const d = manifestoPath(cw, ch, box)
       probe.setAttribute('d', d)
       path = new Path2D(d)
@@ -104,8 +109,8 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
         clipPath: 'inset(0% 0% 0% 0% round 0px)', ease: 'none',
         scrollTrigger: { trigger: section.current, start: 'top bottom', end: 'top top', scrub: 0.6 },
       })
-      gsap.fromTo(img.current, { scale: 1.22, yPercent: -4 }, {
-        scale: 1.04, yPercent: 4, ease: 'none',
+      gsap.fromTo(img.current, { scale: 1.68, yPercent: -3 }, {
+        scale: 1.46, yPercent: 2, ease: 'none',
         scrollTrigger: { trigger: section.current, start: 'top bottom', end: 'bottom bottom', scrub: 0.6 },
       })
       gsap.fromTo(hud.current, { yPercent: 60 }, {
@@ -144,10 +149,10 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
               src="./photo/manifesto-1280.webp"
               srcSet={set('webp')}
               sizes="100vw"
-              alt="A mountaineer on a snowy rock ridge, rope in hand, crampons biting the crest."
+              alt="Ski tourers skin uphill on a sunlit track toward a snowy cirque, poles planted, skis on their feet."
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-cover object-[72%_40%] max-md:object-[66%_50%]"
+              className="h-full w-full origin-[26%_92%] object-cover object-[60%_55%] [transform:scale(1.46)] max-md:origin-[40%_80%] max-md:object-[62%_60%]"
             />
           </picture>
           {/* чернила слева и снизу — под белой фразой держат контраст AA, справа фото остаётся цветом */}
@@ -174,7 +179,7 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
               {line.map((w, wi) => (
                 <span key={wi}>
                   {w.accent ? (
-                    <span ref={accent} data-w className="accent font-serif font-normal italic tracking-[-0.01em]">{w.text}</span>
+                    <span data-w className="accent font-serif font-normal italic tracking-[-0.01em]">{w.text}</span>
                   ) : (
                     <span data-w>{w.text}</span>
                   )}
@@ -199,7 +204,7 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
         <svg ref={svg} aria-hidden className="invisible absolute h-0 w-0"><path /></svg>
 
         <p className="absolute bottom-4 right-[5vw] z-10 font-mono text-[10px] uppercase tracking-[0.16em] text-white/70 max-md:right-4">
-          Photo · Mike Markov / Unsplash
+          Photo · Holly Mandarich / Unsplash
         </p>
       </div>
     </section>
