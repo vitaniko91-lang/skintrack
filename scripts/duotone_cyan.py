@@ -23,6 +23,10 @@ CONTRAST = 1.35
 GAMMA = 2.2
 GRAIN = 0.22
 WIDTHS = (640, 1280, 2048)
+# 27.09: 62/80 → 50/70 ради бюджета страницы (dist 6.7 → ≤5 MB). Проверено на кропах ×2:
+# зерно в AVIF чуть мягче, в остальном неотличимо. WebP — только фолбэк для браузеров без AVIF.
+AVIF_Q = 50
+WEBP_Q = 70
 
 
 def gradient_map(img: Image.Image, gamma: float = GAMMA) -> np.ndarray:
@@ -50,6 +54,7 @@ def main():
     ap.add_argument("--grain", type=float, default=GRAIN, help="доля зерна (по умолчанию как у hero)")
     ap.add_argument("--gamma", type=float, default=GAMMA)
     ap.add_argument("--widths", default=",".join(map(str, WIDTHS)), help="ширины через запятую")
+    ap.add_argument("--webp-max", type=int, default=0, help="не писать WebP шире этой ширины (фолбэк без самых больших)")
     a = ap.parse_args()
     img = Image.open(a.src).convert("RGB")
     OUT.mkdir(parents=True, exist_ok=True)
@@ -57,10 +62,12 @@ def main():
         h = round(img.height * w / img.width)
         rgb = grain(gradient_map(img.resize((w, h), Image.LANCZOS), a.gamma), amount=a.grain)
         out = Image.fromarray((rgb * 255).round().astype("uint8"))
-        out.save(OUT / f"{a.name}-{w}.avif", quality=62)
-        out.save(OUT / f"{a.name}-{w}.webp", quality=80, method=6)
-        kb = [(OUT / f"{a.name}-{w}.{e}").stat().st_size // 1024 for e in ("avif", "webp")]
-        print(f"{w}x{h}: avif {kb[0]} KB, webp {kb[1]} KB")
+        out.save(OUT / f"{a.name}-{w}.avif", quality=AVIF_Q)
+        exts = ["avif"]
+        if not a.webp_max or w <= a.webp_max:
+            out.save(OUT / f"{a.name}-{w}.webp", quality=WEBP_Q, method=6)
+            exts.append("webp")
+        print(f"{w}x{h}: " + ", ".join(f"{e} {(OUT / f'{a.name}-{w}.{e}').stat().st_size // 1024} KB" for e in exts))
 
 
 if __name__ == "__main__":

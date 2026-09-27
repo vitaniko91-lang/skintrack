@@ -5,7 +5,9 @@ import { manifestoPath } from './layout'
 import { span, easeOut } from './stage'
 
 const W = [640, 1280, 2048, 2880]
-const set = (ext: string) => W.map((w) => `./photo/manifesto-${w}.${ext} ${w}w`).join(', ')
+/** WebP — фолбэк для браузеров без AVIF, поэтому без 2880: бюджет страницы важнее резкости на редком пути. */
+const WEBP_W = W.filter((w) => w <= 2048)
+const set = (ext: string, ws = W) => ws.map((w) => `./photo/manifesto-${w}.${ext} ${w}w`).join(', ')
 
 /** Запас холста сверху и снизу: слой ленты едет вместе с фразой, края не должны открываться. */
 const PAD = 160
@@ -147,7 +149,7 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
             <img
               ref={img}
               src="./photo/manifesto-1280.webp"
-              srcSet={set('webp')}
+              srcSet={set('webp', WEBP_W)}
               sizes="100vw"
               alt="A line of six ski tourers skins uphill across a wide snowfield below sunlit peaks in the Lyngen Alps."
               loading="lazy"
