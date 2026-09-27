@@ -49,6 +49,8 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
   const section = useRef<HTMLElement>(null)
   const card = useRef<HTMLDivElement>(null)
   const svg = useRef<SVGSVGElement>(null)
+  const fillSvg = useRef<SVGSVGElement>(null)
+  const ribbonSvg = useRef<SVGSVGElement>(null)
   const ui = useRef<HTMLDivElement>(null)
   const phone = useRef<HTMLDivElement>(null)
   const stats = useRouteStats()
@@ -56,16 +58,21 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
 
   useEffect(() => {
     const root = svg.current!
-    const [outline, fill] = Array.from(root.querySelectorAll<SVGTextElement>('text'))
-    const [glow, core] = Array.from(root.querySelectorAll<SVGPathElement>('[data-ribbon]'))
-    const head = root.querySelector('circle')!
+    const outline = root.querySelector<SVGTextElement>('text')!
+    const fill = fillSvg.current!.querySelector<SVGTextElement>('text')!
+    const rs = ribbonSvg.current!
+    const [glow, core] = Array.from(rs.querySelectorAll<SVGPathElement>('[data-ribbon]'))
+    const head = rs.querySelector('circle')!
     const clip = root.querySelector('clipPath rect')!
     let L = 1, lut: [number, number][] = [], wm = { x: 0, y: 0, w: 0, h: 0 }, last = -1, want = 0
 
     const build = () => {
       const fitEl = phone.current?.querySelector<HTMLElement>('[data-fit]')
       if (fitEl) fitEl.style.scale = String(Math.min(1, (innerHeight * 0.66) / 822))
-      const r = card.current!.getBoundingClientRect(), host = root.getBoundingClientRect()
+      // раскладочные размеры, без transform карточки (она масштабируется при входе)
+      const c = card.current!
+      const r = { left: c.offsetLeft, top: c.offsetTop, width: c.offsetWidth, height: c.offsetHeight, bottom: c.offsetTop + c.offsetHeight }
+      const host = { left: 0, top: 0, width: root.clientWidth || c.parentElement!.clientWidth, height: c.parentElement!.clientHeight }
       const pad = Math.max(16, r.width * 0.025)
       // кегль подбирается так, чтобы слово заняло ширину карточки
       for (const t of [outline, fill]) t.setAttribute('font-size', '200')
@@ -91,7 +98,7 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
       L = core.getTotalLength()
       lut = []
       for (let i = 0; i <= 300; i++) { const q = core.getPointAtLength((i / 300) * L); lut.push([q.x, q.y]) }
-      root.setAttribute('viewBox', `0 0 ${host.width.toFixed(0)} ${host.height.toFixed(0)}`)
+      for (const el of [root, fillSvg.current!, rs]) el.setAttribute('viewBox', `0 0 ${host.width.toFixed(0)} ${host.height.toFixed(0)}`)
       last = -1
       draw(want)
     }
@@ -117,7 +124,7 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
       const reveal = ph.draw >= 1 ? wm.w + wm.x + 40 : Math.max(hx, wm.x - 20)
       clip.setAttribute('x', String(wm.x - 40)); clip.setAttribute('y', String(wm.y - wm.h))
       clip.setAttribute('width', Math.max(0, reveal - wm.x + 40).toFixed(1)); clip.setAttribute('height', String(wm.h * 3))
-      fill.style.opacity = ph.fill.toFixed(3)
+      fillSvg.current!.style.opacity = ph.fill.toFixed(3)
       outline.style.opacity = (1 - ph.fill * 0.55).toFixed(3)
       if (ui.current) { ui.current.style.opacity = ph.ui.toFixed(3); ui.current.style.transform = `translate3d(0,${((1 - ph.ui) * 28).toFixed(1)}px,0)` }
     }
@@ -130,9 +137,10 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
     }
 
     const ctx = gsap.context(() => {
-      gsap.fromTo(card.current, { clipPath: 'inset(10% 8% 0% 8% round 64px)' }, {
-        clipPath: 'inset(0% 0% 0% 0% round 48px)', ease: 'none',
-        scrollTrigger: { trigger: section.current, start: 'top bottom', end: 'top top', scrub: 0.6 },
+      // масштаб, а не clip-path: композитится без перерисовки большого фото
+      gsap.fromTo(card.current, { scale: 0.86, yPercent: 8 }, {
+        scale: 1, yPercent: 0, ease: 'none',
+        scrollTrigger: { trigger: section.current, start: 'top bottom', end: 'top 45%', scrub: 0.6 },
       })
       gsap.fromTo(card.current!.querySelector('img'), { scale: 1.2 }, {
         scale: 1.04, ease: 'none',
@@ -155,7 +163,7 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
   return (
     <section ref={section} id="chapter-06" aria-labelledby="finale-h" className={`relative bg-ground ${reduced ? 'h-svh min-h-[720px]' : 'h-[230vh]'}`}>
       <div className="sticky top-0 h-svh min-h-[640px] overflow-hidden">
-        <div ref={card} className="absolute inset-x-[2vw] inset-y-[3svh] overflow-hidden rounded-[48px] max-md:inset-x-3 max-md:rounded-[32px]">
+        <div ref={card} className="absolute inset-x-[2vw] inset-y-[3svh] overflow-hidden rounded-[48px] will-change-transform max-md:inset-x-3 max-md:rounded-[32px]">
           <picture>
             <source type="image/avif" srcSet={set('avif')} sizes="100vw" />
             <img
@@ -165,7 +173,7 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
               alt=""
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-cover object-[28%_40%]"
+              className="h-full w-full object-cover object-[28%_40%] will-change-transform"
             />
           </picture>
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgb(2_16_22/0.92)_0%,rgb(2_16_22/0.55)_38%,rgb(2_16_22/0.2)_70%)]" />
@@ -173,7 +181,7 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
         </div>
 
         {/* телефон в наклоне поверх карточки и вордмарка (RideOn: телефон на руле) */}
-        <div ref={phone} aria-hidden className="pointer-events-none absolute right-[7vw] top-[6svh] z-20 max-md:hidden">
+        <div ref={phone} aria-hidden className="pointer-events-none absolute will-change-transform right-[7vw] top-[6svh] z-20 max-md:hidden">
           <div data-fit className="w-[390px] origin-top-right [transform:perspective(1600px)_rotateY(-16deg)_rotateX(6deg)_rotateZ(9deg)]">
           <div className="rounded-[52px] bg-[linear-gradient(150deg,#2a3a44,#0b141b_45%,#1a2730)] p-[11px] shadow-[inset_0_0_0_1px_rgb(255_255_255/0.14),0_0_90px_-10px_rgb(92_232_255/0.4),0_60px_100px_-30px_rgb(0_0_0/0.9)]">
             <div inert>
@@ -193,7 +201,7 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
             <span className="font-mono text-[12px] uppercase tracking-[0.22em] text-muted">Chapter · of 06</span>
           </div>
           <h2 id="finale-h" className="mt-2 leading-[0.9]">
-            <span className="block font-serif text-[clamp(2.6rem,5vw,5.2rem)] italic text-cyan-hot [text-shadow:0_0_40px_rgb(92_232_255/0.45)]">See you</span>
+            <span className="mb-[0.12em] block font-serif text-[clamp(2.6rem,5vw,5.2rem)] italic text-cyan-hot [text-shadow:0_0_40px_rgb(92_232_255/0.45)]">See you</span>
             <span className="caps-wide block text-[clamp(1.8rem,3.4vw,3.6rem)] font-extrabold uppercase tracking-[-0.03em] text-white">up there</span>
           </h2>
           <div ref={ui} className="mt-7 has-[:focus-visible]:!translate-y-0 has-[:focus-visible]:!opacity-100">
@@ -214,12 +222,17 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
           </div>
         </div>
 
+        {/* три слоя: контур (клип меняется), заливка (только opacity — свой слой, без перерисовки), лента */}
         <svg ref={svg} aria-hidden className="pointer-events-none absolute inset-0 z-10 h-full w-full overflow-visible">
           <defs>
             <clipPath id="fin-reveal"><rect x="0" y="0" width="0" height="0" /></clipPath>
           </defs>
-          <text className="wordmark" fill="none" stroke="#B8F7FF" strokeWidth="1.6" clipPath="url(#fin-reveal)" style={{ opacity: 1 }}>{WORD}</text>
-          <text className="wordmark" fill="#ffffff" style={{ opacity: 0, filter: 'drop-shadow(0 0 30px rgb(92 232 255 / 0.35))' }}>{WORD}</text>
+          <text data-wm className="wordmark" fill="none" stroke="#B8F7FF" strokeWidth="1.6" clipPath="url(#fin-reveal)">{WORD}</text>
+        </svg>
+        <svg ref={fillSvg} aria-hidden className="pointer-events-none absolute inset-0 z-10 h-full w-full overflow-visible will-change-[opacity]" style={{ opacity: 0 }}>
+          <text data-wm className="wordmark" fill="#ffffff" style={{ filter: 'drop-shadow(0 0 30px rgb(92 232 255 / 0.35))' }}>{WORD}</text>
+        </svg>
+        <svg ref={ribbonSvg} aria-hidden className="pointer-events-none absolute inset-0 z-10 h-full w-full overflow-visible">
           <path data-ribbon fill="none" stroke="rgb(92 232 255 / 0.35)" strokeWidth="20" strokeLinecap="round" />
           <path data-ribbon fill="none" stroke="#E8FDFF" strokeWidth="5" strokeLinecap="round" />
           <circle r="8" fill="#ffffff" style={{ filter: 'drop-shadow(0 0 10px #5CE8FF)', opacity: 0 }} />

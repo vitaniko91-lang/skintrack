@@ -267,10 +267,9 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
       aria-label="Chapter 04 · Try it live"
       className={`relative bg-ground ${narrow ? 'pb-16' : reduced ? 'h-svh min-h-[720px]' : 'h-[260vh]'}`}
     >
-      <div className={narrow ? 'relative' : 'sticky top-0 h-svh min-h-[720px] overflow-hidden'}>
-        {/* ореол и призрачный вордмарк за тройкой (RideOn) */}
+      <div className={narrow ? 'relative overflow-x-clip' : 'sticky top-0 h-svh min-h-[720px] overflow-hidden'}>
+        {/* ореол за тройкой */}
         <div aria-hidden className="pointer-events-none absolute right-[-10vw] top-[8%] size-[min(90vw,1100px)] rounded-full bg-[radial-gradient(circle,rgb(92_232_255/0.2),rgb(92_232_255/0.05)_45%,transparent_70%)] max-md:right-[-40vw] max-md:top-[30%]" />
-        <p aria-hidden className="wordmark pointer-events-none absolute -right-[2vw] top-[4svh] select-none text-[24vw] text-white/[0.04] max-md:hidden">try it</p>
 
         <ChapterLabel
           ref={label}
@@ -338,7 +337,7 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
         <button
           type="button"
           onClick={() => dispatch({ type: 'reset' })}
-          className="group absolute bottom-[6svh] right-[4vw] z-20 flex h-14 items-center gap-3 rounded-full border border-white/12 bg-[rgb(10_20_28/0.8)] pl-1.5 pr-5 text-[15px] font-medium text-body backdrop-blur-md transition-colors duration-200 hover:border-cyan/50 max-md:static max-md:mx-4 max-md:mt-6 max-md:w-[calc(100%-2rem)]"
+          className="group absolute bottom-[6svh] left-[5vw] z-20 flex h-14 items-center gap-3 rounded-full border border-white/12 bg-[rgb(10_20_28/0.8)] pl-1.5 pr-5 text-[15px] font-medium text-body backdrop-blur-md transition-colors duration-200 hover:border-cyan/50 max-md:static max-md:mx-4 max-md:mt-6 max-md:w-[calc(100%-2rem)]"
         >
           <span className="grid size-11 place-items-center rounded-full bg-cyan text-ink shadow-[0_0_24px_rgb(92_232_255/0.55)]">
             <span aria-hidden className="icon-[lucide--rotate-ccw] size-5 transition-transform duration-300 group-hover:-rotate-90" />

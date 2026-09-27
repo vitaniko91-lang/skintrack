@@ -77,3 +77,6 @@ html.lenis, html.lenis body { height: auto; }
   .chev > span { animation: none; opacity: 0.8; }
   .ping { animation: none; opacity: 0.6; }
 }
+
+/* у «Try» и «See you» есть нижний выносной y — капс под ними опускаем, чтобы хвост не лёг между словами */
+#chapter-04 [data-ch="read"] { margin-bottom: 0.1em; }
