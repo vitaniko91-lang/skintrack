@@ -2,8 +2,10 @@ import { Prototype } from '../../prototype/Prototype'
 import { DEFAULT_CONDITIONS, type Conditions } from '../../prototype/conditions'
 import type { ProtoState } from '../../prototype/machine'
 import { CaseSection } from '../ui/CaseSection'
+import { useMediaQuery } from '../../lib/useMediaQuery'
+import { ScreenSwitcher } from '../ui/ScreenSwitcher'
 
-interface Shot { label: string; note: string; initial: Partial<ProtoState>; conditions?: Conditions }
+export interface Shot { label: string; note: string; initial: Partial<ProtoState>; conditions?: Conditions }
 
 export const FLOW: Shot[] = [
   { label: '1 · Route built', note: 'Stats come from the real elevation model, not mock numbers.', initial: { screen: 'route', routeBuilt: true } },
@@ -33,14 +35,19 @@ function Shots({ shots, cols }: { shots: Shot[]; cols: string }) {
 }
 
 export function Screens() {
+  const wide = useMediaQuery('(min-width: 1024px)')
   return (
     <CaseSection id="screens" index={4} label="Screens" title="The same four screens, including the bad days.">
       <p className="max-w-2xl text-lg text-muted">
         These are the live components from the product page, started in different states — every phone below still works.
       </p>
-      <div className="mt-12"><Shots shots={FLOW} cols="md:grid-cols-2 2xl:grid-cols-4" /></div>
+      <div className="mt-12">
+        {wide ? <Shots shots={FLOW} cols="lg:grid-cols-2 2xl:grid-cols-4" /> : <ScreenSwitcher label="Flow" shots={FLOW} />}
+      </div>
       <h3 className="mt-24 text-2xl font-bold" style={{ fontStretch: '115%' }}>Edge states</h3>
-      <div className="mt-8"><Shots shots={EDGE_STATES} cols="md:grid-cols-2 xl:grid-cols-3" /></div>
+      <div className="mt-8">
+        {wide ? <Shots shots={EDGE_STATES} cols="lg:grid-cols-3" /> : <ScreenSwitcher label="Edge states" shots={EDGE_STATES} />}
+      </div>
     </CaseSection>
   )
 }

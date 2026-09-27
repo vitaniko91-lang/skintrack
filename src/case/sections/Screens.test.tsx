@@ -7,7 +7,7 @@ vi.mock('../../terrain/routeSummary', async (orig) => ({
 }))
 
 beforeEach(() => {
-  window.matchMedia = ((q: string) => ({ matches: q.includes('reduce') })) as never
+  window.matchMedia = ((q: string) => ({ matches: q.includes('reduce') || q.includes('min-width') })) as never
 })
 
 describe('Screens', () => {
@@ -35,5 +35,11 @@ describe('Screens', () => {
     render(<Screens />)
     expect(screen.queryAllByRole('alert')).toHaveLength(0)
     expect(screen.queryByRole('heading', { name: '38°' })).toBeNull()
+  })
+  it('on narrow screens shows two switchers instead of seven phones', () => {
+    window.matchMedia = ((q: string) => ({ matches: q.includes('reduce') })) as never
+    render(<Screens />)
+    expect(screen.getAllByRole('figure')).toHaveLength(2)
+    expect(screen.getAllByRole('tablist')).toHaveLength(2)
   })
 })
