@@ -4,3 +4,5 @@ dist
 .DS_Store
 assets-src/
 *.tsbuildinfo
+.vercel
+.env*
