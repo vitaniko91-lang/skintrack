@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { arcLut, manifestoPath } from './layout'
-import { span, easeOut } from './stage'
+import { afterIntro, idle, span, easeOut } from './stage'
 
 const W = [640, 1280, 2048, 2880]
 /** WebP — фолбэк для браузеров без AVIF, поэтому без 2880: бюджет страницы важнее резкости на редком пути. */
@@ -43,6 +43,9 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
     let lut: [number, number][] = []
     const lit: string[] = []
     let lastK = -1, want = 0
+    // холст пуст (после смены размера или очистки): первая операция над большим 2D-холстом выделяет
+    // его буфер (~100 мс) — не на монтировании посреди входной анимации, а в простое (warm ниже)
+    let blank = true
     const build = () => {
       // геометрия без transform фразы: петля строится вокруг слова в исходном положении,
       // а сдвиг фразы по скроллу переносится на весь слой ленты (follow)
@@ -51,6 +54,7 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
       scale = cw < 768 ? 0.55 : 1
       dpr = Math.min(devicePixelRatio || 1, 2)
       cv.width = Math.round(cw * dpr); cv.height = Math.round((ch + PAD * 2) * dpr)
+      blank = true
       // габарит всей фразы по словам (строки nowrap могут вылезать за ширину <p>)
       const p = phrase.current!
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
@@ -65,14 +69,17 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
       lastK = -1
       draw(want)
     }
+    const warm = () => { if (blank) c2.clearRect(0, 0, 1, 1) }
     const follow = () => { cv.style.transform = `translate3d(0,${(Number(gsap.getProperty(phrase.current, 'y')) - PAD).toFixed(1)}px,0)` }
     function draw(k: number) {
       want = k
       if (Math.abs(k - lastK) < 0.0005) return
       lastK = k
+      if (k <= 0.001 && blank) return
       c2.setTransform(dpr, 0, 0, dpr, 0, PAD * dpr)
       c2.clearRect(0, -PAD, cw, ch + PAD * 2)
-      if (k <= 0.001) return
+      blank = k <= 0.001
+      if (blank) return
       c2.lineCap = 'round'
       c2.setLineDash([k * L, L * 2])
       for (const [w, col] of STROKES) { c2.lineWidth = w * scale; c2.strokeStyle = col; c2.stroke(path) }
@@ -131,8 +138,10 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
       tl.fromTo('[data-m="label"]', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.12 }, 0)
     }, section)
     document.fonts.ready.then(() => { build(); ScrollTrigger.refresh() })
+    let alive = true
+    afterIntro.then(() => idle(() => { if (alive) warm() }))
     addEventListener('resize', build)
-    return () => { ctx.revert(); removeEventListener('resize', build) }
+    return () => { alive = false; ctx.revert(); removeEventListener('resize', build) }
   }, [reduced])
 
   return (

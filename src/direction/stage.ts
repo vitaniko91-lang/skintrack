@@ -32,3 +32,12 @@ export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(
 /** Поза сцены: прогресс глав 01 и 02. Статичный кадр (reduced motion) задаёт её явно. */
 export interface Pose { p: number; q: number }
 export const livePose = (pose?: Pose): Pose => pose ?? stage
+
+let introResolve = () => {}
+/** Входная анимация первого экрана закончилась. Тяжёлую подготовку (WebGL, холсты) — после неё. */
+export const afterIntro: Promise<void> = new Promise((r) => { introResolve = r })
+export const markIntroDone = () => introResolve()
+
+/** Колбэк в простое главного потока (с запасным таймером, где requestIdleCallback нет). */
+export const idle = (cb: () => void, timeout = 1000) =>
+  typeof requestIdleCallback === 'function' ? requestIdleCallback(cb, { timeout }) : setTimeout(cb, 100)

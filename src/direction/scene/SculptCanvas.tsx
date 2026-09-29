@@ -8,7 +8,7 @@ import type { Heightfield } from '../../terrain/decode'
 import { Sculpture } from './Sculpture'
 import { Halo } from './Halo'
 import { Snow } from './Snow'
-import { stage, span, easeInOut, livePose, type Pose } from '../stage'
+import { idle, stage, span, easeInOut, livePose, type Pose } from '../stage'
 
 const tmp = new Vector3()
 /** Глава 02: насколько камера наезжает, опускается, сдвигает центр кадра к горе и поднимает взгляд. */
@@ -48,7 +48,6 @@ function Prewarm() {
   useEffect(() => {
     if (frameloop !== 'never') return // сцена уже рисуется — греть нечего
     let alive = true
-    const idle = (cb: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(cb, { timeout: 1500 }) : setTimeout(cb, 200))
     idle(() => {
       // сцена рисуется в HalfFloat-буфер композера, а не в холст: ключ программы (tone mapping,
       // цветовое пространство) зависит от цели, поэтому компилируем под такую же цель

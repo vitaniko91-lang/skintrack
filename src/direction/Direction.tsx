@@ -7,7 +7,7 @@ import { HeroPhoto } from './HeroPhoto'
 import { Wordmark } from './Wordmark'
 import { SwipeCard } from './SwipeCard'
 import { ChapterLabel } from './ChapterLabel'
-import { stage } from './stage'
+import { idle, markIntroDone, stage } from './stage'
 import { TrackStroke } from './TrackStroke'
 import { RouteCards } from './RouteCards'
 import { Manifesto } from './Manifesto'
@@ -19,7 +19,6 @@ import { Gear } from './Gear'
 gsap.registerPlugin(ScrollTrigger)
 const loadScene = () => import('./scene/SculptCanvas')
 const SculptCanvas = lazy(loadScene)
-const idle = (cb: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(cb, { timeout: 1000 }) : setTimeout(cb, 100))
 
 function Nav({ logoRef }: { logoRef?: React.Ref<HTMLSpanElement> }) {
   return (
@@ -74,7 +73,7 @@ export default function Direction() {
 }
 
 function Static() {
-  useEffect(() => { stage.p = 1; stage.q = 1 }, [])
+  useEffect(() => { stage.p = 1; stage.q = 1; markIntroDone() }, [])
   return (
     <main>
       <section className="relative h-svh min-h-[640px] overflow-hidden bg-ground">
@@ -153,7 +152,7 @@ function Motion() {
         .fromTo(letters, { yPercent: 118, rotate: 9, opacity: 0 }, { yPercent: 0, rotate: 0, opacity: 1, duration: 1.1, stagger: 0.055 }, 0.85)
         .fromTo(metas, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.08 }, 1.35)
         .fromTo(card.current, { xPercent: 70, x: 60, rotate: 7, opacity: 0 }, { xPercent: 0, x: 0, rotate: 0, opacity: 1, duration: 1.0 }, 1.55)
-        .eventCallback('onComplete', () => idle(mountScene))
+        .eventCallback('onComplete', () => { markIntroDone(); idle(mountScene) })
 
       // ── Переход по скроллу (scrub): прогресс timeline = stage.p для 3D ──
       const dock = () => {
