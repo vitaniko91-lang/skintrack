@@ -205,14 +205,21 @@ export function RouteCards({ statsRef }: { statsRef?: React.Ref<HTMLDListElement
     const ro = new ResizeObserver(measure)
     els.forEach((el) => ro.observe(el))
     let idle = false
+    let last = ''
     const tick = () => {
       const q = stage.q
-      if (q <= 0.001 || !stage.anchorsReady) {
+      // трек ушёл из кадра — слой прячем и больше не пишем: выноски (SVG) иначе перерисовывали
+      // полноэкранный слой на каждом кадре глав 03–06
+      if (q <= 0.001 || !stage.anchorsReady || !stage.track) {
         if (!idle) { root.style.visibility = 'hidden'; idle = true }
         return
       }
       if (idle) { root.style.visibility = 'visible'; idle = false }
       const W = innerWidth, H = innerHeight, narrow = W < 768
+      const A = stage.anchors
+      const key = `${q}|${A[0].x}|${A[0].y}|${A[1].x}|${A[1].y}|${A[2].x}|${A[2].y}|${stage.px}|${stage.py}|${W}|${H}|${size.map((s) => s.w + 'x' + s.h).join()}`
+      if (key === last) return // ничего не сдвинулось — DOM не трогаем
+      last = key
       // сначала кулуар (главная), потом остальные разводятся от уже поставленных
       // узкий экран: подпись главы занимает верхнюю треть — карточки под ней
       const band = narrow ? H * 0.3 : 88

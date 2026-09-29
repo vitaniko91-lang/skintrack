@@ -21,6 +21,8 @@ export const stage = {
   /** экранные точки вершин маршрута: старт, кулуар, плечо (пиксели); ready — сцена их посчитала */
   anchors: [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }],
   anchorsReady: false,
+  /** трек первого экрана (главы 01–02) хоть краем в кадре; вне его тикеры трека не трогают DOM */
+  track: true,
 }
 
 export const clamp01 = (x: number) => Math.min(Math.max(x, 0), 1)

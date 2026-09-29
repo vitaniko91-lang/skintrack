@@ -166,7 +166,7 @@ function Motion() {
         const on = stage.p > 0.002 && inView
         if (on !== activeRef.current) { activeRef.current = on; setActive(on) }
       }
-      ScrollTrigger.create({ trigger: track.current, start: 'top bottom', end: 'bottom top', onToggle: (self) => { inView = self.isActive; sync() } })
+      ScrollTrigger.create({ trigger: track.current, start: 'top bottom', end: 'bottom top', onToggle: (self) => { inView = self.isActive; stage.track = inView; sync() } })
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: {

@@ -198,7 +198,7 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
           ))}
         </p>
 
-        <div ref={hud} className="absolute right-[6vw] top-[22svh] z-10 w-[268px] rounded-[26px] border border-white/15 bg-[rgb(4_8_12/0.82)] p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.12),0_30px_60px_-24px_rgb(0_0_0/0.8)] max-md:hidden" aria-hidden>
+        <div ref={hud} className="absolute right-[6vw] top-[22svh] z-10 w-[268px] will-change-transform rounded-[26px] border border-white/15 bg-[rgb(4_8_12/0.82)] p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.12),0_30px_60px_-24px_rgb(0_0_0/0.8)] max-md:hidden" aria-hidden>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">Slope ahead · 120 m</p>
           <div className="mt-2 flex items-end justify-between">
             <p className="text-[48px] font-bold leading-[0.85] tracking-[-0.04em] tabular-nums text-body">38°</p>
