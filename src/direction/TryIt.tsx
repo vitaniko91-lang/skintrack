@@ -124,12 +124,19 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
     const last: string[] = []
     let k = reduced ? 1 : 0 // въезд тройки 0..1
     let r = reduced ? 0.4 : 0 // прогресс закреплённой части (лента)
-    let near = true
+    // false до первого входа: onToggle срабатывает, только когда секция в кадре; с true тикер
+    // расставлял телефоны (и читал раскладку) на каждом кадре всей страницы, пока глава 04 ни разу не показалась
+    let near = false
     const [glow, core] = Array.from(ribbon.current!.querySelectorAll('path'))
     const head = ribbon.current!.querySelector('circle')!
     let lastRibbon = ''
 
-    const fitOf = () => Math.min(1, (innerHeight * 0.86) / DH, (root.clientWidth * 0.5) / DW)
+    // ширина сцены — из ResizeObserver, а не clientWidth на каждом кадре: чтение после записей GSAP
+    // форсировало пересчёт раскладки в каждом кадре скролла
+    let rootW = root.clientWidth
+    const ro = new ResizeObserver(() => { rootW = root.clientWidth })
+    ro.observe(root)
+    const fitOf = () => Math.min(1, (innerHeight * 0.86) / DH, (rootW * 0.5) / DW)
 
     let now = performance.now()
     const place = (dt: number) => {
@@ -204,12 +211,12 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
     }
 
     if (reduced) {
-      const once = () => { place(0); drawRibbon() }
+      const once = () => { rootW = root.clientWidth; place(0); drawRibbon() }
       relayout.current = once
       const t = setTimeout(once, 50)
       const t2 = setTimeout(once, 600) // карта и шрифты догрузились
       addEventListener('resize', once)
-      return () => { clearTimeout(t); clearTimeout(t2); removeEventListener('resize', once) }
+      return () => { clearTimeout(t); clearTimeout(t2); removeEventListener('resize', once); ro.disconnect() }
     }
 
     gsap.ticker.add(tick)
@@ -238,7 +245,7 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
         onUpdate: (self) => { r = self.progress },
       })
     }, section)
-    return () => { gsap.ticker.remove(tick); ctx.revert() }
+    return () => { gsap.ticker.remove(tick); ctx.revert(); ro.disconnect() }
   }, [narrow, reduced])
 
   useEffect(() => { if (reduced) relayout.current() }, [active, reduced])
