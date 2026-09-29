@@ -124,9 +124,9 @@ export function TryIt({ reduced = false }: { reduced?: boolean }) {
     const last: string[] = []
     let k = reduced ? 1 : 0 // въезд тройки 0..1
     let r = reduced ? 0.4 : 0 // прогресс закреплённой части (лента)
-    // false до первого входа: onToggle срабатывает, только когда секция в кадре; с true тикер
-    // расставлял телефоны (и читал раскладку) на каждом кадре всей страницы, пока глава 04 ни разу не показалась
-    let near = false
+    // в движении — false до первого входа: onToggle срабатывает, только когда секция в кадре; с true тикер
+    // расставлял телефоны (и читал раскладку) на каждом кадре всей страницы. Статичный режим триггеров не имеет — true
+    let near = reduced
     const [glow, core] = Array.from(ribbon.current!.querySelectorAll('path'))
     const head = ribbon.current!.querySelector('circle')!
     let lastRibbon = ''
