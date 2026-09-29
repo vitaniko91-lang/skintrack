@@ -9,6 +9,11 @@ function plane(deg: number, n = 5, cell = 10): Heightfield {
 }
 
 describe('slopeGrid', () => {
+  it('computes a heightfield once: the page asks for it from three places', () => {
+    const hf = plane(20)
+    expect(slopeGrid(hf)).toBe(slopeGrid(hf))
+    expect(slopeGrid(plane(20))).not.toBe(slopeGrid(hf))
+  })
   it('measures a 35° plane as 35° in the interior', () => {
     const s = slopeGrid(plane(35))
     expect(s[2 * 5 + 2]).toBeCloseTo(35, 3)

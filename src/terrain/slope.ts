@@ -15,8 +15,20 @@ export function slopeBand(deg: number): number {
   return band
 }
 
-/** Крутизна в градусах для каждой ячейки (центральные разности, на краях — односторонние). */
+const grids = new WeakMap<Heightfield, Float32Array>()
+
+/**
+ * Крутизна в градусах для каждой ячейки (центральные разности, на краях — односторонние).
+ * Один расчёт на карту высот: 512² atan — ~100 мс, а страница спрашивает из трёх мест.
+ * Результат общий — не изменять.
+ */
 export function slopeGrid(hf: Heightfield): Float32Array {
+  let g = grids.get(hf)
+  if (!g) { g = computeSlopeGrid(hf); grids.set(hf, g) }
+  return g
+}
+
+function computeSlopeGrid(hf: Heightfield): Float32Array {
   const { width: w, height: h, heights, cellMeters: c } = hf
   const out = new Float32Array(w * h)
   const at = (x: number, y: number) => heights[y * w + x]
