@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { Color, MeshPhysicalMaterial, Vector3, type Group } from 'three'
 import type { Heightfield } from '../../terrain/decode'
 import { ROUTE_UV } from '../../terrain/route'
-import { slopeGrid } from '../../terrain/slope'
+import { slopeCell } from '../../terrain/slope'
 import { hazardSpan, ndcToScreen } from '../layout'
 import { buildFacetedSculpt, FADE_FROM } from './sculptGeometry'
 import { buildRibbon } from './ribbonGeometry'
@@ -66,11 +66,10 @@ export const CARD_VERTICES = [0, 4, ROUTE_UV.length - 1] as const
  * на карте) вокруг кулуара — вершины 4. Короткие полки внутри склеиваются.
  */
 function hazardT(hf: Heightfield, uv: [number, number][], aT: ArrayLike<number>, near: number): [number, number] {
-  const grid = slopeGrid(hf)
   const w = hf.width, h = hf.height
   const at = (u: number, v: number) => {
     const x = u * (w - 1), y = v * (h - 1), x0 = Math.floor(x), y0 = Math.floor(y), tx = x - x0, ty = y - y0
-    const g = (i: number, j: number) => grid[Math.min(j, h - 1) * w + Math.min(i, w - 1)]
+    const g = (i: number, j: number) => slopeCell(hf, Math.min(j, h - 1) * w + Math.min(i, w - 1))
     return (g(x0, y0) * (1 - tx) + g(x0 + 1, y0) * tx) * (1 - ty) + (g(x0, y0 + 1) * (1 - tx) + g(x0 + 1, y0 + 1) * tx) * ty
   }
   const s = hazardSpan(uv.map(([u, v]) => at(u, v)), 30, { gap: 8, near })

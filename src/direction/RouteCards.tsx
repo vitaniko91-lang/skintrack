@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { heightAt } from '../terrain/decode'
 import { ROUTE_UV } from '../terrain/route'
-import { SLOPE_BANDS, slopeGrid } from '../terrain/slope'
+import { SLOPE_BANDS, slopeCell } from '../terrain/slope'
 import { formatRouteStats, loadHeightfieldOnce, useRouteStats } from '../terrain/routeSummary'
 import { avoid, edgePoint, formatElevation, formatKm, hazardSpan, placeCard, type Pt, type Rect } from './layout'
 import { stage, span, easeOut } from './stage'
@@ -28,7 +28,6 @@ function useProfile() {
   const [p, setP] = useState<Profile | null>(null)
   useEffect(() => {
     loadHeightfieldOnce().then((hf) => {
-      const grid = slopeGrid(hf)
       const N = 72, seg = ROUTE_UV.length - 1
       const hs: number[] = [], sl: number[] = []
       for (let i = 0; i <= N; i++) {
@@ -36,7 +35,7 @@ function useProfile() {
         const u = ROUTE_UV[k][0] + (ROUTE_UV[k + 1][0] - ROUTE_UV[k][0]) * f
         const v = ROUTE_UV[k][1] + (ROUTE_UV[k + 1][1] - ROUTE_UV[k][1]) * f
         hs.push(heightAt(hf, u, v))
-        sl.push(grid[Math.round(v * (hf.height - 1)) * hf.width + Math.round(u * (hf.width - 1))])
+        sl.push(slopeCell(hf, Math.round(v * (hf.height - 1)) * hf.width + Math.round(u * (hf.width - 1))))
       }
       const lo = Math.min(...hs), hi = Math.max(...hs)
       const pt = (i: number): [number, number] => [(i / N) * 290 + 5, 58 - ((hs[i] - lo) / (hi - lo)) * 50]

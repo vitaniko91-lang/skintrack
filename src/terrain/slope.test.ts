@@ -1,4 +1,4 @@
-import { slopeGrid, slopeBand, SLOPE_BANDS } from './slope'
+import { slopeGrid, slopeBand, slopeCell, SLOPE_BANDS } from './slope'
 import type { Heightfield } from './decode'
 
 function plane(deg: number, n = 5, cell = 10): Heightfield {
@@ -9,6 +9,12 @@ function plane(deg: number, n = 5, cell = 10): Heightfield {
 }
 
 describe('slopeGrid', () => {
+  it('slopeCell reads the same numbers as the full grid, one cell at a time', () => {
+    const hf = plane(0, 6)
+    hf.heights.forEach((_, i) => { hf.heights[i] = Math.sin(i * 1.7) * 40 + (i % 6) * 9 })
+    const g = slopeGrid(hf)
+    for (let i = 0; i < g.length; i++) expect(slopeCell(hf, i)).toBe(g[i])
+  })
   it('computes a heightfield once: the page asks for it from three places', () => {
     const hf = plane(20)
     expect(slopeGrid(hf)).toBe(slopeGrid(hf))
