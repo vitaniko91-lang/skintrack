@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, Lightformer } from '@react-three/drei'
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing'
-import { Vector3 } from 'three'
+import { HalfFloatType, Vector3, WebGLRenderTarget } from 'three'
 import { loadHeightfieldOnce } from '../../terrain/routeSummary'
 import type { Heightfield } from '../../terrain/decode'
 import { Sculpture } from './Sculpture'
@@ -37,6 +37,34 @@ function Rig({ reduced, narrow, pose }: { reduced: boolean; narrow: boolean; pos
   return null
 }
 
+/**
+ * Прогрев, пока сцену закрывает фото: шейдеры компилируются параллельно (KHR_parallel_shader_compile),
+ * затем один скрытый кадр — PMREM окружения, программы постобработки, загрузка буферов.
+ * Без этого всё это случалось на первом кадре скролла: ~200–600 мс стоп на переходе от фото к горе.
+ */
+function Prewarm() {
+  const gl = useThree((s) => s.gl), scene = useThree((s) => s.scene), camera = useThree((s) => s.camera)
+  const advance = useThree((s) => s.advance), frameloop = useThree((s) => s.frameloop)
+  useEffect(() => {
+    if (frameloop !== 'never') return // сцена уже рисуется — греть нечего
+    let alive = true
+    const idle = (cb: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(cb, { timeout: 1500 }) : setTimeout(cb, 200))
+    idle(() => {
+      // сцена рисуется в HalfFloat-буфер композера, а не в холст: ключ программы (tone mapping,
+      // цветовое пространство) зависит от цели, поэтому компилируем под такую же цель
+      const rt = new WebGLRenderTarget(1, 1, { type: HalfFloatType }), prev = gl.getRenderTarget()
+      gl.setRenderTarget(rt)
+      const ready = gl.compileAsync(scene, camera)
+      gl.setRenderTarget(prev)
+      ready.catch(() => {}).then(() => { rt.dispose(); if (alive) idle(() => { if (alive) advance(performance.now()) }) })
+    })
+    return () => { alive = false }
+    // только при монтировании: смена frameloop дальше — обычный рендер
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return null
+}
+
 /** active=false — сцена целиком закрыта фото первого экрана: не рендерим впустую. */
 export default function SculptCanvas({ reduced, active = true, pose, anchors = true }: { reduced: boolean; active?: boolean; pose?: Pose; anchors?: boolean }) {
   const [hf, setHf] = useState<Heightfield | null>(null)
@@ -47,7 +75,7 @@ export default function SculptCanvas({ reduced, active = true, pose, anchors = t
       dpr={[1, 1.5]}
       camera={{ fov: 30, near: 0.1, far: 200, position: [14, 6, -14] }}
       frameloop={reduced ? 'demand' : active ? 'always' : 'never'}
-      gl={{ antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: true }}
+      gl={{ antialias: false, powerPreference: 'high-performance' }}
       aria-hidden
     >
       <color attach="background" args={['#04080C']} />
@@ -66,6 +94,7 @@ export default function SculptCanvas({ reduced, active = true, pose, anchors = t
       <Halo reduced={reduced} />
       <Snow reduced={reduced} count={narrow ? 350 : 700} />
       {hf && <Sculpture hf={hf} segments={17} reduced={reduced} pose={pose} anchors={anchors} />}
+      {hf && !reduced && <Prewarm />}
       <EffectComposer multisampling={0}>
         <Bloom mipmapBlur levels={6} resolutionScale={0.5} intensity={1.1} luminanceThreshold={0.78} luminanceSmoothing={0.15} radius={0.7} />
         <Vignette offset={0.25} darkness={0.7} />

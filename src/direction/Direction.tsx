@@ -17,7 +17,9 @@ import { Credits } from './Credits'
 import { Gear } from './Gear'
 
 gsap.registerPlugin(ScrollTrigger)
-const SculptCanvas = lazy(() => import('./scene/SculptCanvas'))
+const loadScene = () => import('./scene/SculptCanvas')
+const SculptCanvas = lazy(loadScene)
+const idle = (cb: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(cb, { timeout: 1000 }) : setTimeout(cb, 100))
 
 function Nav({ logoRef }: { logoRef?: React.Ref<HTMLSpanElement> }) {
   return (
@@ -116,8 +118,14 @@ function Motion() {
   const lenis = useRef<Lenis | null>(null)
   const [active, setActive] = useState(false)
   const activeRef = useRef(false)
+  // WebGL-контекст, окружение и геометрия горы — ~0.5 с главного потока. Под фото сцены не видно,
+  // поэтому холст монтируется после входной анимации (или на первом скролле), а не посреди неё.
+  const [scene, setScene] = useState(false)
+  const sceneRef = useRef(false)
 
   useEffect(() => {
+    loadScene() // чанк грузится сразу, монтируется позже
+    const mountScene = () => { if (!sceneRef.current) { sceneRef.current = true; setScene(true) } }
     const l = new Lenis({ lerp: 0.085 })
     lenis.current = l
     l.on('scroll', ScrollTrigger.update)
@@ -145,6 +153,7 @@ function Motion() {
         .fromTo(letters, { yPercent: 118, rotate: 9, opacity: 0 }, { yPercent: 0, rotate: 0, opacity: 1, duration: 1.1, stagger: 0.055 }, 0.85)
         .fromTo(metas, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.08 }, 1.35)
         .fromTo(card.current, { xPercent: 70, x: 60, rotate: 7, opacity: 0 }, { xPercent: 0, x: 0, rotate: 0, opacity: 1, duration: 1.0 }, 1.55)
+        .eventCallback('onComplete', () => idle(mountScene))
 
       // ── Переход по скроллу (scrub): прогресс timeline = stage.p для 3D ──
       const dock = () => {
@@ -154,6 +163,7 @@ function Motion() {
       // сцена рендерится, только пока трек в кадре и фото героя её не закрывает
       let inView = true
       const sync = () => {
+        if (stage.p > 0) mountScene()
         const on = stage.p > 0.002 && inView
         if (on !== activeRef.current) { activeRef.current = on; setActive(on) }
       }
@@ -230,7 +240,7 @@ function Motion() {
       <div ref={track} className="relative h-[780vh]">
         <div className="sticky top-0 h-svh overflow-hidden bg-ground">
           <div className="absolute inset-0" aria-hidden>
-            <Suspense fallback={null}><SculptCanvas reduced={false} active={active} /></Suspense>
+            {scene && <Suspense fallback={null}><SculptCanvas reduced={false} active={active} /></Suspense>}
           </div>
           <ChapterLabel ref={chapter} />
           <Chapter02 ref={chapter2} />
