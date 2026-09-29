@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { hermite } from './layout'
+import { arcLut, hermite } from './layout'
 import { finalePhases } from './chapterMath'
 import { formatRouteStats, useRouteStats } from '../terrain/routeSummary'
 import { initialState } from '../prototype/machine'
@@ -70,9 +70,7 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
         { x: wm.x + wm.w + fs * 0.05, y: cy - fs * 0.1, tx: 1, ty: -0.4 },
       ])
       for (const p of [glow, core]) p.setAttribute('d', d)
-      L = core.getTotalLength()
-      lut = []
-      for (let i = 0; i <= 300; i++) { const q = core.getPointAtLength((i / 300) * L); lut.push([q.x, q.y]) }
+      ;({ L, pts: lut } = arcLut(d, 300))
       for (const el of [root, fillSvg.current!, rs]) el.setAttribute('viewBox', `0 0 ${host.width.toFixed(0)} ${host.height.toFixed(0)}`)
       last = -1
       draw(want)

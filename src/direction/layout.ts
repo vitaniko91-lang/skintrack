@@ -134,6 +134,27 @@ export function samplePath(d: string, n: number): Pt[] {
 }
 
 /**
+ * Длина пути и n+1 точек через равные доли длины — то же, что getTotalLength +
+ * getPointAtLength(i / n · L), но в чистом JS: 400 вызовов getPointAtLength на
+ * длинном пути стоили ~300 мс главного потока при загрузке.
+ */
+export function arcLut(d: string, n: number, perSeg = 96): { L: number; pts: [number, number][] } {
+  const poly = samplePath(d, perSeg)
+  const cum = new Float64Array(poly.length)
+  for (let i = 1; i < poly.length; i++) cum[i] = cum[i - 1] + Math.hypot(poly[i].x - poly[i - 1].x, poly[i].y - poly[i - 1].y)
+  const L = cum[poly.length - 1]
+  const pts: [number, number][] = []
+  let j = 1
+  for (let i = 0; i <= n; i++) {
+    const s = (i / n) * L
+    while (j < poly.length - 1 && cum[j] < s) j++
+    const seg = cum[j] - cum[j - 1] || 1, t = Math.min(Math.max((s - cum[j - 1]) / seg, 0), 1)
+    pts.push([poly[j - 1].x + (poly[j].x - poly[j - 1].x) * t, poly[j - 1].y + (poly[j].y - poly[j - 1].y) * t])
+  }
+  return { L, pts }
+}
+
+/**
  * Путь 2D-ленты через манифест: входит сверху справа (оттуда уходит 3D-хвост главы 02),
  * проходит НАД фразой справа налево, огибает её левый край и уходит под строками
  * вниз, к главе 04. Буквы не пересекает ни в одной точке — ленту видно, текст читается.

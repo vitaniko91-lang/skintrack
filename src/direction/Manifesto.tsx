@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { manifestoPath } from './layout'
+import { arcLut, manifestoPath } from './layout'
 import { span, easeOut } from './stage'
 
 const W = [640, 1280, 2048, 2880]
@@ -31,7 +31,6 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
   const frame = useRef<HTMLDivElement>(null)
   const img = useRef<HTMLImageElement>(null)
   const phrase = useRef<HTMLParagraphElement>(null)
-  const svg = useRef<SVGSVGElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const hud = useRef<HTMLDivElement>(null)
 
@@ -39,10 +38,9 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
     // лента рисуется в 2D-canvas: пунктирная перерисовка SVG на весь экран стоила ~20 fps
     const cv = canvas.current!
     const c2 = cv.getContext('2d')!
-    const probe = svg.current!.querySelector('path')!
     const words = Array.from(phrase.current!.querySelectorAll<HTMLElement>('[data-w]'))
     let L = 1, path = new Path2D(), dpr = 1, cw = 0, ch = 0, scale = 1
-    const lut: [number, number][] = []
+    let lut: [number, number][] = []
     const lit: string[] = []
     let lastK = -1, want = 0
     const build = () => {
@@ -62,11 +60,8 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
       }
       const box = { x: p.offsetLeft + x0, y: p.offsetTop + y0, w: x1 - x0, h: y1 - y0 }
       const d = manifestoPath(cw, ch, box)
-      probe.setAttribute('d', d)
       path = new Path2D(d)
-      L = probe.getTotalLength()
-      lut.length = 0
-      for (let i = 0; i <= 400; i++) { const q = probe.getPointAtLength((i / 400) * L); lut.push([q.x, q.y]) }
+      ;({ L, pts: lut } = arcLut(d, 400))
       lastK = -1
       draw(want)
     }
@@ -205,7 +200,6 @@ export function Manifesto({ reduced = false }: { reduced?: boolean }) {
         </div>
 
         <canvas ref={canvas} aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-[5] w-full will-change-transform" style={{ height: `calc(100% + ${PAD * 2}px)` }} />
-        <svg ref={svg} aria-hidden className="invisible absolute h-0 w-0"><path /></svg>
 
         <p className="absolute bottom-4 right-[5vw] z-10 font-mono text-[10px] uppercase tracking-[0.16em] text-white/70 max-md:right-4">
           Photo · Hendrik Morkel / Unsplash

@@ -1,4 +1,4 @@
-import { avoid, edgePoint, formatElevation, formatKm, hazardSpan, manifestoPath, ndcToScreen, placeCard, samplePath } from './layout'
+import { avoid, edgePoint, formatElevation, formatKm, hazardSpan, manifestoPath, ndcToScreen, placeCard, samplePath, arcLut } from './layout'
 
 describe('ndcToScreen', () => {
   it('maps NDC corners to pixel corners with y flipped', () => {
@@ -89,6 +89,28 @@ describe('samplePath', () => {
     expect(pts[0]).toEqual({ x: 0, y: 0 })
     expect(pts[pts.length - 1]).toEqual({ x: 10, y: 0 })
     expect(pts).toHaveLength(5)
+  })
+})
+
+describe('arcLut', () => {
+  it('spaces points evenly by arc length, not by curve parameter', () => {
+    // сильно неравномерная параметризация: контрольные точки прижаты к началу
+    const { L, pts } = arcLut('M0,0 C0,0 0,0 90,0', 9)
+    expect(L).toBeCloseTo(90, 1)
+    expect(pts).toHaveLength(10)
+    pts.forEach((p, i) => { expect(p[0]).toBeCloseTo(i * 10, 0); expect(p[1]).toBeCloseTo(0, 5) })
+  })
+  it('walks multi-segment paths end to end', () => {
+    const { L, pts } = arcLut('M0,0 C0,0 30,0 30,0 C30,0 30,40 30,40', 7)
+    expect(L).toBeCloseTo(70, 1)
+    expect(pts[0]).toEqual([0, 0])
+    expect(pts[7][0]).toBeCloseTo(30, 3); expect(pts[7][1]).toBeCloseTo(40, 3)
+    expect(pts[3][0]).toBeCloseTo(30, 0); expect(pts[3][1]).toBeCloseTo(0, 0) // 30 из 70
+  })
+  it('matches a quarter circle length', () => {
+    const k = 0.5523 * 100
+    const { L } = arcLut(`M100,0 C100,${k} ${k},100 0,100`, 10)
+    expect(L).toBeCloseTo((Math.PI / 2) * 100, 0)
   })
 })
 
