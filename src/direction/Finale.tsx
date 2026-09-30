@@ -154,7 +154,7 @@ export function Finale({ reduced = false }: { reduced?: boolean }) {
         </div>
 
         {/* телефон в наклоне поверх карточки и вордмарка (RideOn: телефон на руле) */}
-        <div ref={phone} aria-hidden className="pointer-events-none absolute will-change-transform right-[7vw] top-[6svh] z-20 max-md:hidden">
+        <div ref={phone} aria-hidden className="pointer-events-none absolute will-change-transform right-[7vw] top-[6svh] z-20 max-lg:hidden">
           <div data-fit className="w-[390px] origin-top-right [transform:perspective(1600px)_rotateY(-16deg)_rotateX(6deg)_rotateZ(9deg)]">
           <div className="rounded-[52px] bg-[linear-gradient(150deg,#2a3a44,#0b141b_45%,#1a2730)] p-[11px] shadow-[inset_0_0_0_1px_rgb(255_255_255/0.14),0_0_90px_-10px_rgb(92_232_255/0.4),0_60px_100px_-30px_rgb(0_0_0/0.9)]">
             <div inert>

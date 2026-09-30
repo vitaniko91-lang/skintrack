@@ -223,7 +223,10 @@ export function RouteCards({ statsRef }: { statsRef?: React.Ref<HTMLDListElement
       // сначала кулуар (главная), потом остальные разводятся от уже поставленных
       // узкий экран: подпись главы занимает верхнюю треть — карточки под ней
       const band = narrow ? H * 0.3 : 88
-      const placed: Rect[] = []
+      // полоса статистики — такое же препятствие, как карточки: на 768 она доходит до угла,
+      // где стоит карточка старта. offset*, а не getBoundingClientRect — без её собственного въезда
+      const bar = document.querySelector<HTMLElement>('[data-stats]')
+      const placed: Rect[] = bar?.offsetWidth ? [{ x: bar.offsetLeft, y: bar.offsetTop, w: bar.offsetWidth, h: bar.offsetHeight }] : []
       const target: Rect[] = []
       for (const i of [1, 0, 2]) {
         const r0 = placeCard(stage.anchors[i], size[i], { w: W, h: H }, (narrow ? OFFSET_NARROW : OFFSET)[i], narrow ? 12 : 24, band)
