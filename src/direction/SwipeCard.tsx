@@ -32,7 +32,7 @@ export const SwipeCard = forwardRef<HTMLDivElement, Props>(function SwipeCard({ 
   return (
     <div
       ref={ref}
-      className={`absolute right-[4.5vw] top-[21svh] z-30 w-[344px] rounded-[32px] border border-white/12 bg-[#04080c]/85 p-5 text-body shadow-[0_40px_90px_-30px_rgb(0_0_0/0.8)] max-md:left-4 max-md:right-4 max-md:top-auto max-md:bottom-4 max-md:w-auto max-md:p-4 ${className}`}
+      className={`absolute right-[4.5vw] hero-card-top z-30 w-[344px] rounded-[32px] border border-white/12 bg-[#04080c]/85 p-5 text-body shadow-[0_40px_90px_-30px_rgb(0_0_0/0.8)] max-md:left-4 max-md:right-4 max-md:top-auto max-md:bottom-4 max-md:w-auto max-md:p-4 ${className}`}
     >
       <div className="flex items-start justify-between gap-4">
         <div>

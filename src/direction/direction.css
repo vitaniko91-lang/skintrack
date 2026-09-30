@@ -51,6 +51,13 @@ html.lenis, html.lenis body { height: auto; }
 }
 .caps-wide { font-variation-settings: "wdth" 125; }
 
+/* карточка героя: 21svh, но не ниже, чем позволяет подзаголовок над вордмарком
+   (17.958vw + 28px — его отступ снизу; 384 = карточка 300 + подзаголовок 60 + зазор 24).
+   Без этого на широких невысоких экранах (1600×840) карточка наезжает на подзаголовок. */
+@media (width >= 48rem) {
+  .hero-card-top { top: max(88px, min(21svh, calc(100svh - 17.958vw - 28px - 384px))); }
+}
+
 /* шеврон-«ёлочка» в пилюле: бегущий блик */
 @keyframes chevron-run { 0%, 100% { opacity: 0.25 } 50% { opacity: 1 } }
 .chev > span { animation: chevron-run 1.4s var(--ease-expo) infinite; }
