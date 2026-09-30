@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
@@ -122,7 +122,9 @@ function Motion() {
   const [scene, setScene] = useState(false)
   const sceneRef = useRef(false)
 
-  useEffect(() => {
+  // layout-эффект, а не useEffect: fromTo интро должен выставить начальные состояния ДО первой
+  // отрисовки — иначе первый кадр показывает готовый герой, и он мигает перед появлением
+  useLayoutEffect(() => {
     loadScene() // чанк грузится сразу, монтируется позже
     const mountScene = () => { if (!sceneRef.current) { sceneRef.current = true; setScene(true) } }
     const l = new Lenis({ lerp: 0.085 })
