@@ -6,3 +6,4 @@ assets-src/
 *.tsbuildinfo
 .vercel
 .env*
+!.env.production
